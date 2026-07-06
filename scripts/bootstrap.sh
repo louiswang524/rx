@@ -17,21 +17,20 @@ mkdir -p "$PROJECT_DIR"/{experiments,notes,paper/arxiv,paper/anon}
 mkdir -p "$PROJECT_DIR"/.rx/{questions,evidence,claims,experiments}
 
 # state.json (must match rx_state.store.default_state)
-cat > "$PROJECT_DIR/.rx/state.json" <<EOF
-{
-  "project": "$PROJECT_NAME",
-  "kb_path": "$KB_DIR",
-  "stage": "ideate",
-  "loop": {
-    "enabled": false,
-    "iteration": 0,
-    "max_iterations": 20,
-    "no_improve_count": 0,
-    "no_improve_limit": 5
-  },
-  "artifacts": {"questions": [], "evidence": [], "claims": [], "experiments": []}
+python3 - "$PROJECT_NAME" "$KB_DIR" "$PROJECT_DIR/.rx/state.json" <<'PY'
+import json, sys
+project, kb_path, out = sys.argv[1], sys.argv[2], sys.argv[3]
+state = {
+    "project": project,
+    "kb_path": kb_path,
+    "stage": "ideate",
+    "loop": {"enabled": False, "iteration": 0, "max_iterations": 20,
+             "no_improve_count": 0, "no_improve_limit": 5},
+    "artifacts": {"questions": [], "evidence": [], "claims": [], "experiments": []},
 }
-EOF
+with open(out, "w", encoding="utf-8") as f:
+    json.dump(state, f, indent=2)
+PY
 
 cat > "$PROJECT_DIR/PROJECT.md" <<EOF
 # $PROJECT_NAME
@@ -63,7 +62,8 @@ if command -v uv >/dev/null 2>&1; then
 fi
 
 git -C "$PROJECT_DIR" add -A
-git -C "$PROJECT_DIR" -c user.email=rx@local -c user.name=rx \
-    commit -q -m "chore: bootstrap $PROJECT_NAME research project"
+git -C "$PROJECT_DIR" diff --cached --quiet || \
+  git -C "$PROJECT_DIR" -c user.email=rx@local -c user.name=rx \
+      commit -q -m "chore: bootstrap $PROJECT_NAME research project"
 
 echo "Project ready at $PROJECT_DIR"

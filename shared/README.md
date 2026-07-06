@@ -5,7 +5,7 @@ Stage skills (rx-ideate … rx-review, rx-pipeline) build on this.
 ## Python — `rx_state`
 - `schema.py`: `STRENGTHS`, `OUTCOMES`, `STAGES`; `Experiment`, `Evidence`, `Claim`; `validate_strength/outcome`.
 - `gates.py`: `evaluate_gate(claim, evidence, experiments) -> (strength, reasons)`; `can_promote(...) -> bool`.
-  - `supported` = >=1 linked positive experiment. `strong` = >=2 distinct seeds + baseline + commit.
+  - `supported` = >=1 linked evidence with a positive outcome. `strong` = >=2 distinct seeds + baseline + commit.
 - `store.py`: `default_state`, `load_state`, `save_state`, `write_claim`, `read_claim`.
 
 ## Scripts
