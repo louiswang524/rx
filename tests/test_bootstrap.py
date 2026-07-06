@@ -20,6 +20,13 @@ def test_bootstrap_scaffolds_project(tmp_path):
     assert state["project"] == "myproj"
     assert state["stage"] == "ideate"
     assert state["kb_path"] == str(kb)
+    assert state["loop"] == {
+        "enabled": False, "iteration": 0, "max_iterations": 20,
+        "no_improve_count": 0, "no_improve_limit": 5,
+    }
+    assert state["artifacts"] == {
+        "questions": [], "evidence": [], "claims": [], "experiments": [],
+    }
 
     # first commit exists
     log = subprocess.run(["git", "-C", str(proj), "log", "--oneline"],

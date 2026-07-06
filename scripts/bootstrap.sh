@@ -3,6 +3,10 @@ set -euo pipefail
 
 PROJECT_DIR="${1:?usage: bootstrap.sh <PROJECT_DIR> <PROJECT_NAME> [KB_DIR]}"
 PROJECT_NAME="${2:?project name required}"
+if ! [[ "$PROJECT_NAME" =~ ^[A-Za-z0-9._-]+$ ]]; then
+  echo "error: PROJECT_NAME must match ^[A-Za-z0-9._-]+$ (got: $PROJECT_NAME)" >&2
+  exit 2
+fi
 KB_DIR="${3:-$HOME/.rx-kb}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
