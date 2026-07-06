@@ -25,3 +25,15 @@ def test_lint_flags_leaks():
 def test_lint_clean_returns_empty():
     clean = "Anonymous proposes a gating mechanism. See [ANONYMIZED-URL]."
     assert lint_anonymity(clean, AUTHORS, URLS) == []
+
+
+def test_case_insensitive_name_matching():
+    authors = ["Louis Wang"]
+    urls = ["github.com/louis/rx"]
+    # uppercase variant in the source must still be caught + anonymized
+    src = "LOUIS WANG and louis wang; see GITHUB.COM/louis/rx"
+    out = anonymize_text(src, authors, urls)
+    assert "LOUIS WANG" not in out and "louis wang" not in out
+    assert lint_anonymity(out, authors, urls) == []
+    # the linter must flag a casing variant in dirty text
+    assert lint_anonymity("By LOUIS WANG", authors, urls) != []
