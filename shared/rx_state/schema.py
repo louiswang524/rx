@@ -44,3 +44,10 @@ class Claim:
 
     def __post_init__(self) -> None:
         validate_strength(self.strength)
+
+
+@dataclass
+class Question:
+    id: str
+    text: str
+    gap: str = ""
