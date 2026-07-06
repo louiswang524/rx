@@ -10,7 +10,10 @@ def test_default_state_shape():
     assert st["project"] == "recsys-proj"
     assert st["kb_path"] == "/home/u/.rx-kb"
     assert st["stage"] == "ideate"
-    assert st["loop"]["enabled"] is False
+    assert st["loop"] == {
+        "enabled": False, "iteration": 0, "max_iterations": 20,
+        "no_improve_count": 0, "no_improve_limit": 5,
+    }
     assert st["artifacts"] == {"questions": [], "evidence": [], "claims": [], "experiments": []}
 
 
@@ -30,4 +33,11 @@ def test_claim_roundtrip(tmp_path):
     path = write_claim(rx_dir, claim)
     assert path.endswith(os.path.join("claims", "C1.md"))
     back = read_claim(path)
+    assert back == claim
+
+
+def test_claim_roundtrip_none_question(tmp_path):
+    claim = Claim(id="C9", text="baseline holds", strength="speculative",
+                  evidence_ids=[], question_id=None)
+    back = read_claim(write_claim(str(tmp_path), claim))
     assert back == claim
