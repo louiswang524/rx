@@ -66,3 +66,18 @@ def test_experiment_blocked_until_locked(tmp_path):
 def test_other_stages_have_no_blockers(tmp_path):
     assert stage_blockers(str(tmp_path), "survey") == []
     assert stage_blockers(str(tmp_path), "write") == []
+
+
+def test_loop_gate_wins_over_all_limits():
+    # iteration 2->3 (budget would trip), no_improve_count 1->2 (no_improve would trip),
+    # but gate_cleared wins over both.
+    _, action = loop_step(_loop(iteration=2, no_improve_count=1),
+                          improved=False, gate_cleared=True)
+    assert action == "stop_success"
+
+
+def test_loop_no_improve_beats_budget():
+    # both budget and no_improve trip this step; no_improve is checked first.
+    _, action = loop_step(_loop(iteration=2, no_improve_count=1),
+                          improved=False, gate_cleared=False)
+    assert action == "stop_no_improve"
