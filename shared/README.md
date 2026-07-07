@@ -30,3 +30,8 @@ Stage skills (rx-ideate … rx-review, rx-pipeline) build on this.
 - `analysis.py`: `summarize_metric`, `beats_baseline`, `decide_outcome` (feeds evidence outcomes).
 - `review.py`: `ReviewFinding`, `recommend`, `repro_checklist`.
 - Skills: `rx-survey` (sonnet), `rx-plan` (sonnet), `rx-analyze` (opus), `rx-review` (opus). Full pipeline now: ideate → survey → plan → experiment → analyze → write → review.
+
+## Orchestrator + loop (Plan 4)
+- `pipeline.py`: `next_stage`, `advance_stage(state)` (pure), `stage_blockers(rx_dir, stage)` (experiment needs a lock), `loop_step(loop, improved, gate_cleared) -> (loop, action)`.
+  - loop actions: `stop_success` (gate cleared) | `stop_no_improve` | `stop_budget` | `continue` (back to ideate with negative evidence).
+- Skill: `rx-pipeline` (opus) — chains all stages, enforces gates, runs `--loop`. Completes the 8-skill set.
