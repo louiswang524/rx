@@ -36,3 +36,12 @@ def test_strong_requires_two_seeds_baseline_and_commit():
     met2, _ = evaluate_gate(claim, ev, strong)
     assert met2 == "strong"
     assert can_promote(claim, ev, strong) is True
+
+
+def test_positive_evidence_without_experiment_is_not_supported():
+    claim = Claim(id="C1", text="X helps", strength="supported", evidence_ids=["E1"])
+    ev = [Evidence(id="E1", outcome="positive", experiment_id=None)]  # no linked experiment
+    met, reasons = evaluate_gate(claim, ev, [])
+    assert met == "speculative"
+    assert can_promote(claim, ev, []) is False
+    assert any("experiment" in r for r in reasons)
