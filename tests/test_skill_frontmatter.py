@@ -19,3 +19,14 @@ def test_ideate_skill_frontmatter_and_sections():
     assert front.get("description")
     for section in ("## Purpose", "## Steps", "## Outputs"):
         assert section in body, f"missing {section}"
+
+
+def test_experiment_skill_frontmatter_and_sections():
+    front, body = _parse_frontmatter("rx-experiment/SKILL.md")
+    assert front["name"] == "rx-experiment"
+    assert front["model"] == "sonnet"
+    assert front.get("description")
+    for section in ("## Purpose", "## Steps", "## Outputs"):
+        assert section in body
+    assert "capture_run" in body
+    assert "negative" in body  # negative results are first-class
