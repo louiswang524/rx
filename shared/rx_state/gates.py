@@ -22,6 +22,10 @@ def evaluate_gate(
         reasons.append("no linked evidence with positive outcome")
         return "speculative", reasons
 
+    if not exps:
+        reasons.append("supported requires a linked positive experiment")
+        return "speculative", reasons
+
     all_seeds = {s for x in exps for s in x.seeds}
     has_baseline = any(x.baseline for x in exps)
     has_commit = any(x.commit for x in exps)
