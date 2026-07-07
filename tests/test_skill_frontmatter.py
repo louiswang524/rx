@@ -30,3 +30,16 @@ def test_experiment_skill_frontmatter_and_sections():
         assert section in body
     assert "capture_run" in body
     assert "negative" in body  # negative results are first-class
+
+
+def test_write_skill_covers_four_outputs_and_gates():
+    front, body = _parse_frontmatter("rx-write/SKILL.md")
+    assert front["name"] == "rx-write"
+    assert front["model"] == "sonnet"
+    for section in ("## Purpose", "## Steps", "## Outputs", "## Anonymity", "## Blog"):
+        assert section in body
+    for out in ("paper/arxiv", "paper/anon", "code/", "blog/"):
+        assert out in body
+    assert "can_promote" in body and "[UNSUPPORTED]" in body
+    assert "lint_anonymity" in body
+    assert "confirm" in body.lower()  # blog push requires confirmation
