@@ -23,3 +23,10 @@ Stage skills (rx-ideate … rx-review, rx-pipeline) build on this.
 - `anonymize.py`: `anonymize_text`, `lint_anonymity` (used by rx-write on `paper/anon/`).
 - `reproduce.py`: `render_reproduce(experiments, run_command)` → `code/REPRODUCE.md`.
 - Skills: `rx-ideate` (opus), `rx-experiment` (sonnet), `rx-write` (sonnet). rx-write emits paper/arxiv, paper/anon, code/, blog/.
+
+## Fill-in stages (Plan 3)
+- `survey.py`: `PaperNote`, `write_note/read_note`, `collect_baselines(notes)`.
+- `planlock.py`: `PlanLock`, `write_lock/read_lock`, `is_locked(rx_dir)` (blocker-first gate for rx-experiment).
+- `analysis.py`: `summarize_metric`, `beats_baseline`, `decide_outcome` (feeds evidence outcomes).
+- `review.py`: `ReviewFinding`, `recommend`, `repro_checklist`.
+- Skills: `rx-survey` (sonnet), `rx-plan` (sonnet), `rx-analyze` (opus), `rx-review` (opus). Full pipeline now: ideate → survey → plan → experiment → analyze → write → review.

@@ -1,4 +1,5 @@
 import os
+import pytest
 import yaml
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
@@ -43,3 +44,17 @@ def test_write_skill_covers_four_outputs_and_gates():
     assert "can_promote" in body and "[UNSUPPORTED]" in body
     assert "lint_anonymity" in body
     assert "confirm" in body.lower()  # blog push requires confirmation
+
+
+@pytest.mark.parametrize("name,model", [
+    ("rx-ideate", "opus"), ("rx-survey", "sonnet"), ("rx-plan", "sonnet"),
+    ("rx-experiment", "sonnet"), ("rx-analyze", "opus"),
+    ("rx-write", "sonnet"), ("rx-review", "opus"),
+])
+def test_all_skills_have_valid_frontmatter(name, model):
+    front, body = _parse_frontmatter(f"{name}/SKILL.md")
+    assert front["name"] == name
+    assert front["model"] == model
+    assert front.get("description")
+    for section in ("## Purpose", "## Steps", "## Outputs"):
+        assert section in body, f"{name} missing {section}"
