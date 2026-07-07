@@ -56,9 +56,14 @@ EOF
 # fresh git repo
 git -C "$PROJECT_DIR" init -q
 
-# per-project venv from shared uv cache (skip gracefully if uv missing)
+# per-project venv from shared uv cache + install the rx_state package so the skills'
+# Python helpers (rx_state.*) work inside the project. Best-effort: never fail the
+# bootstrap if uv is missing or offline.
+PLUGIN_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 if command -v uv >/dev/null 2>&1; then
-  ( cd "$PROJECT_DIR" && uv venv >/dev/null 2>&1 || true )
+  # rx_state requires Python >=3.11; pin the venv so the editable install resolves.
+  ( cd "$PROJECT_DIR" && uv venv --python '>=3.11' >/dev/null 2>&1 \
+      && uv pip install -e "$PLUGIN_ROOT" >/dev/null 2>&1 || true )
 fi
 
 git -C "$PROJECT_DIR" add -A

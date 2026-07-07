@@ -1,0 +1,15 @@
+{
+  "name": "rx-dev",
+  "description": "Local marketplace for the rx ML-research skill set",
+  "owner": {
+    "name": "louis"
+  },
+  "plugins": [
+    {
+      "name": "rx",
+      "description": "Unified ML-research skill set: ideate -> survey -> plan -> experiment -> analyze -> write -> review, with a self-improving loop and evidence gates.",
+      "version": "0.1.0",
+      "source": "./"
+    }
+  ]
+}

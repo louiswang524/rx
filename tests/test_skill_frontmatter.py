@@ -6,7 +6,8 @@ ROOT = os.path.join(os.path.dirname(__file__), "..")
 
 
 def _parse_frontmatter(rel_path):
-    with open(os.path.join(ROOT, rel_path), encoding="utf-8") as f:
+    # skills live under <repo>/skills/<name>/SKILL.md
+    with open(os.path.join(ROOT, "skills", rel_path), encoding="utf-8") as f:
         raw = f.read()
     assert raw.startswith("---\n"), f"{rel_path} missing frontmatter"
     _, front_block, body = raw.split("---", 2)
