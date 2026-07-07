@@ -49,7 +49,7 @@ def test_write_skill_covers_four_outputs_and_gates():
 @pytest.mark.parametrize("name,model", [
     ("rx-ideate", "opus"), ("rx-survey", "sonnet"), ("rx-plan", "sonnet"),
     ("rx-experiment", "sonnet"), ("rx-analyze", "opus"),
-    ("rx-write", "sonnet"), ("rx-review", "opus"),
+    ("rx-write", "sonnet"), ("rx-review", "opus"), ("rx-pipeline", "opus"),
 ])
 def test_all_skills_have_valid_frontmatter(name, model):
     front, body = _parse_frontmatter(f"{name}/SKILL.md")
@@ -58,3 +58,14 @@ def test_all_skills_have_valid_frontmatter(name, model):
     assert front.get("description")
     for section in ("## Purpose", "## Steps", "## Outputs"):
         assert section in body, f"{name} missing {section}"
+
+
+def test_pipeline_skill_covers_loop_and_gates():
+    front, body = _parse_frontmatter("rx-pipeline/SKILL.md")
+    assert front["name"] == "rx-pipeline"
+    assert front["model"] == "opus"
+    for section in ("## Purpose", "## Steps", "## Outputs", "## Loop"):
+        assert section in body
+    assert "stage_blockers" in body      # enforces blocker-first
+    assert "loop_step" in body           # drives the loop
+    assert "negative" in body.lower()    # negative results feed the loop
