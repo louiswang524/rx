@@ -1,3 +1,5 @@
+import glob
+import os
 from dataclasses import dataclass
 
 SEVERITIES = ("major", "minor", "praise")
@@ -32,3 +34,42 @@ def repro_checklist(has_code: bool, has_seeds: bool, has_configs: bool) -> list[
     if not has_configs:
         missing.append("configs")
     return missing
+
+
+def write_round(rx_dir: str, n: int, findings: list[ReviewFinding]) -> str:
+    reviews_dir = os.path.join(rx_dir, "reviews")
+    os.makedirs(reviews_dir, exist_ok=True)
+    path = os.path.join(reviews_dir, f"round-{n}.md")
+    lines = [f"# Review round {n}", "", f"recommendation: {recommend(findings)}", ""]
+    for f in findings:
+        lines.append(f"- [{f.severity}] {f.reviewer}: {f.comment}")
+    with open(path, "w", encoding="utf-8") as fh:
+        fh.write("\n".join(lines) + "\n")
+    return path
+
+
+def read_round(path: str) -> list[ReviewFinding]:
+    findings = []
+    with open(path, encoding="utf-8") as fh:
+        for line in fh:
+            line = line.strip()
+            if not line.startswith("- ["):
+                continue
+            severity = line[line.index("[") + 1:line.index("]")]
+            rest = line[line.index("]") + 1:].strip()
+            reviewer, comment = rest.split(":", 1)
+            findings.append(ReviewFinding(reviewer=reviewer.strip(),
+                                          severity=severity,
+                                          comment=comment.strip()))
+    return findings
+
+
+def latest_round(rx_dir: str) -> int:
+    nums = []
+    for p in glob.glob(os.path.join(rx_dir, "reviews", "round-*.md")):
+        base = os.path.basename(p)
+        try:
+            nums.append(int(base[len("round-"):-len(".md")]))
+        except ValueError:
+            continue
+    return max(nums) if nums else 0
