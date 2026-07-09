@@ -8,11 +8,16 @@ routing and is ignored by Codex).
 ## The pipeline
 
 ```
-rx-ideate -> rx-survey -> rx-plan -> rx-experiment -> rx-analyze -> rx-write -> rx-review
-                                  \__ rx-pipeline orchestrates all + self-improving --loop __/
+rx-spinoff ─┐
+rx-ideate ──┴─→ rx-survey -> rx-plan -> rx-experiment -> rx-analyze -> rx-write -> rx-review
+                          \__ rx-pipeline orchestrates all + self-improving --loop __/
 ```
 
 Invoke a stage by name (e.g. "use rx-ideate to ...") or run `rx-pipeline` to chain them.
+
+Two cold-start front-ends feed `rx-survey`: `rx-ideate` (from a vague topic) and `rx-spinoff`
+(from an existing paper — it critiques the paper, derives ranked novelty-checked follow-up
+directions, seeds `.rx/`, then auto-continues, stopping at the plan lock before any compute).
 
 ## Two-tier layout
 
