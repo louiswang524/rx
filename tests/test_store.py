@@ -41,3 +41,8 @@ def test_claim_roundtrip_none_question(tmp_path):
                   evidence_ids=[], question_id=None)
     back = read_claim(write_claim(str(tmp_path), claim))
     assert back == claim
+
+
+def test_default_state_has_draft_loop():
+    st = default_state("p", "/kb")
+    assert st["draft_loop"] == {"iteration": 0, "max_draft_iters": 5}

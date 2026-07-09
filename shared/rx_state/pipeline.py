@@ -37,3 +37,14 @@ def loop_step(loop: dict, improved: bool, gate_cleared: bool) -> tuple[dict, str
     if loop["iteration"] >= loop.get("max_iterations", 20):
         return loop, "stop_budget"
     return loop, "continue"
+
+
+def draft_loop_step(draft_loop: dict, recommendation: str) -> tuple[dict, str]:
+    draft_loop = copy.deepcopy(draft_loop)
+    draft_loop["iteration"] = draft_loop.get("iteration", 0) + 1
+
+    if recommendation in ("accept", "minor revision"):
+        return draft_loop, "stop_clean"
+    if draft_loop["iteration"] >= draft_loop.get("max_draft_iters", 5):
+        return draft_loop, "stop_budget"
+    return draft_loop, "continue"

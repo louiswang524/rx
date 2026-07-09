@@ -17,6 +17,10 @@ def default_state(project: str, kb_path: str) -> dict:
             "no_improve_count": 0,
             "no_improve_limit": 5,
         },
+        "draft_loop": {
+            "iteration": 0,
+            "max_draft_iters": 5,
+        },
         "artifacts": {"questions": [], "evidence": [], "claims": [], "experiments": []},
     }
 
