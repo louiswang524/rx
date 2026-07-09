@@ -77,6 +77,12 @@ def test_spinoff_skill_frontmatter_and_content():
     assert "plan lock" in body.lower()
 
 
+def test_review_skill_persists_rounds():
+    front, body = _parse_frontmatter("rx-review/SKILL.md")
+    assert "write_round" in body
+    assert ".rx/reviews/round-" in body
+
+
 @pytest.mark.parametrize("name,model", [
     ("rx-ideate", "opus"), ("rx-survey", "sonnet"), ("rx-plan", "sonnet"),
     ("rx-experiment", "sonnet"), ("rx-analyze", "opus"),
