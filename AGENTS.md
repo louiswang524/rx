@@ -46,9 +46,10 @@ The skills call these; install the package into the active project venv (`uv pip
 
 ## Outputs of a run
 
-`rx-write` emits four synchronized artifacts: `paper/arxiv/` (preprint), `paper/anon/`
-(double-blind, anonymity-linted), `code/` + `code/REPRODUCE.md`, and `blog/<slug>.md`.
-The blog is never auto-pushed — it asks for confirmation first.
+`rx-write` emits four synchronized artifacts: `paper/arxiv/` and `paper/anon/` as LaTeX source
+(`main.tex` + `preamble.tex` + `refs.bib`; the anon copy is anonymity-linted), `code/` +
+`code/REPRODUCE.md`, and `blog/<slug>.md` (markdown). The blog is never auto-pushed — it asks
+for confirmation first.
 
 ## Loop mode
 
@@ -57,3 +58,8 @@ The blog is never auto-pushed — it asks for confirmation first.
 hypothesis (`ideate`). It terminates on `stop_success` (gate cleared), `stop_no_improve`
 (diminishing returns), or `stop_budget` (iteration budget). Negative/ablation results are
 written up honestly rather than discarded.
+
+There is also a second, inner **drafting loop** at the `write`/`review` stage: `rx-write` drafts,
+`rx-review` files findings to `.rx/reviews/round-<n>.md`, and `rx_state.pipeline.draft_loop_step`
+decides `stop_clean` (no majors), `stop_budget`, or `continue` (→ `rx-write --mode=revise`). So rx
+has two loops — the outer research loop (evidence-driven) and the inner drafting loop (review-driven).

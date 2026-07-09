@@ -1,5 +1,5 @@
 from rx_state.store import default_state
-from rx_state.pipeline import next_stage, advance_stage, stage_blockers, loop_step
+from rx_state.pipeline import next_stage, advance_stage, stage_blockers, loop_step, draft_loop_step
 from rx_state.planlock import PlanLock, write_lock
 
 
@@ -81,3 +81,42 @@ def test_loop_no_improve_beats_budget():
     _, action = loop_step(_loop(iteration=2, no_improve_count=1),
                           improved=False, gate_cleared=False)
     assert action == "stop_no_improve"
+
+
+def _draft(**kw):
+    base = {"iteration": 0, "max_draft_iters": 3}
+    base.update(kw)
+    return base
+
+
+def test_draft_loop_stop_clean_on_accept():
+    dl, action = draft_loop_step(_draft(), "accept")
+    assert action == "stop_clean"
+    assert dl["iteration"] == 1
+
+
+def test_draft_loop_stop_clean_on_minor_revision():
+    _, action = draft_loop_step(_draft(), "minor revision")
+    assert action == "stop_clean"
+
+
+def test_draft_loop_continue_on_reject_under_budget():
+    dl, action = draft_loop_step(_draft(iteration=0), "reject")
+    assert action == "continue"
+    assert dl["iteration"] == 1
+
+
+def test_draft_loop_stop_budget_on_persistent_reject():
+    dl, action = draft_loop_step(_draft(iteration=2, max_draft_iters=3), "reject")
+    assert action == "stop_budget"
+    assert dl["iteration"] == 3
+
+
+def test_draft_loop_reject_then_accept_one_revise_cycle():
+    # behavioral spine: one reject drives one revise, then accept stops clean
+    dl = _draft(max_draft_iters=5)
+    dl, a1 = draft_loop_step(dl, "reject")
+    assert a1 == "continue"          # -> triggers one rx-write --mode=revise
+    dl, a2 = draft_loop_step(dl, "accept")
+    assert a2 == "stop_clean"
+    assert dl["iteration"] == 2
