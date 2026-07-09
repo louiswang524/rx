@@ -47,6 +47,18 @@ def test_write_skill_covers_four_outputs_and_gates():
     assert "confirm" in body.lower()  # blog push requires confirmation
 
 
+def test_write_skill_latex_and_modes():
+    front, body = _parse_frontmatter("rx-write/SKILL.md")
+    assert "main.tex" in body and "preamble.tex" in body and "refs.bib" in body
+    assert "render_bib" in body
+    assert "--mode=draft" in body and "--mode=revise" in body
+    assert "latest_round" in body
+    # existing guarantees still hold
+    for token in ("paper/arxiv", "paper/anon", "code/", "blog/",
+                  "can_promote", "[UNSUPPORTED]", "lint_anonymity", "confirm"):
+        assert token in body
+
+
 def test_spinoff_skill_frontmatter_and_content():
     front, body = _parse_frontmatter("rx-spinoff/SKILL.md")
     assert front["name"] == "rx-spinoff"
