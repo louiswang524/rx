@@ -47,10 +47,29 @@ def test_write_skill_covers_four_outputs_and_gates():
     assert "confirm" in body.lower()  # blog push requires confirmation
 
 
+def test_spinoff_skill_frontmatter_and_content():
+    front, body = _parse_frontmatter("rx-spinoff/SKILL.md")
+    assert front["name"] == "rx-spinoff"
+    assert front["model"] == "opus"
+    assert front.get("description")
+    for section in ("## Purpose", "## Steps", "## Outputs"):
+        assert section in body, f"missing {section}"
+    # seeds the pipeline via the existing helpers (no new rx_state code)
+    assert "write_note" in body        # seed paper -> PaperNote
+    assert "write_question" in body     # follow-up directions -> Q<n>
+    # critical read + follow-up derivation
+    assert "novelty" in body.lower()    # each direction carries a novelty delta
+    assert "future work" in body.lower() or "future-work" in body.lower()
+    # auto-continue but stop safely before compute
+    assert "rx-pipeline" in body
+    assert "plan lock" in body.lower()
+
+
 @pytest.mark.parametrize("name,model", [
     ("rx-ideate", "opus"), ("rx-survey", "sonnet"), ("rx-plan", "sonnet"),
     ("rx-experiment", "sonnet"), ("rx-analyze", "opus"),
     ("rx-write", "sonnet"), ("rx-review", "opus"), ("rx-pipeline", "opus"),
+    ("rx-spinoff", "opus"),
 ])
 def test_all_skills_have_valid_frontmatter(name, model):
     front, body = _parse_frontmatter(f"{name}/SKILL.md")
