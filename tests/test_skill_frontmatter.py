@@ -107,3 +107,11 @@ def test_pipeline_skill_covers_loop_and_gates():
     assert "stage_blockers" in body      # enforces blocker-first
     assert "loop_step" in body           # drives the loop
     assert "negative" in body.lower()    # negative results feed the loop
+
+
+def test_pipeline_skill_covers_drafting_loop():
+    front, body = _parse_frontmatter("rx-pipeline/SKILL.md")
+    assert "## Drafting loop" in body
+    assert "draft_loop_step" in body
+    assert "stop_clean" in body and "stop_budget" in body
+    assert "--mode=revise" in body

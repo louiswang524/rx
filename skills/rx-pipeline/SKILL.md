@@ -29,3 +29,14 @@ With `--loop`, after `analyze` decide `improved` (beat the locked baseline?) and
 - `stop_budget` — iteration budget exhausted; write up best result so far.
 - `continue` — loop back to `ideate` with the prior **negative** evidence fed in as input for a new hypothesis.
 Plan in machine-time (iterations/compute), never human-days.
+
+## Drafting loop
+A second, inner loop — separate from the research `## Loop` above and independent of `--loop`.
+Once the research loop settles and the pipeline reaches `write`, iterate the paper:
+1. `rx-write --mode=draft`.
+2. `rx-review` — writes `.rx/reviews/round-<n>.md` and yields a `recommendation`.
+3. `rx_state.pipeline.draft_loop_step(state["draft_loop"], recommendation)`:
+   - `stop_clean` — recommendation is `accept` or `minor revision`; finish.
+   - `stop_budget` — `iteration >= max_draft_iters`; finish and report the residual major findings honestly.
+   - `continue` — run `rx-write --mode=revise`, then back to step 2.
+The drafting loop only edits the paper; it never re-runs experiments or touches `.rx/` evidence.
