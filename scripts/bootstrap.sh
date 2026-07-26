@@ -49,21 +49,26 @@ EOF
 cat > "$PROJECT_DIR/.gitignore" <<'EOF'
 __pycache__/
 *.pyc
-.venv/
+.venv
 experiments/**/checkpoints/
 EOF
 
 # fresh git repo
 git -C "$PROJECT_DIR" init -q
 
-# per-project venv from shared uv cache + install the rx_state package so the skills'
-# Python helpers (rx_state.*) work inside the project. Best-effort: never fail the
-# bootstrap if uv is missing or offline.
+# One venv shared across all rx projects, kept in the KB dir (already the one thing every
+# project shares). `.venv` in each project is a symlink to it, so `rx_state` and its deps are
+# installed once instead of per project. Best-effort: never fail the bootstrap if uv is missing
+# or offline.
 PLUGIN_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+SHARED_VENV="${RX_VENV_DIR:-$KB_DIR/venv}"
 if command -v uv >/dev/null 2>&1; then
   # rx_state requires Python >=3.11; pin the venv so the editable install resolves.
-  ( cd "$PROJECT_DIR" && uv venv --python '>=3.11' >/dev/null 2>&1 \
-      && uv pip install -e "$PLUGIN_ROOT" >/dev/null 2>&1 || true )
+  if [ ! -d "$SHARED_VENV" ]; then
+    uv venv --python '>=3.11' "$SHARED_VENV" >/dev/null 2>&1 || true
+  fi
+  uv pip install --python "$SHARED_VENV/bin/python" -e "$PLUGIN_ROOT" >/dev/null 2>&1 || true
+  ln -sfn "$SHARED_VENV" "$PROJECT_DIR/.venv"
 fi
 
 git -C "$PROJECT_DIR" add -A

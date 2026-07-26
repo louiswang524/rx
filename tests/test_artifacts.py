@@ -11,6 +11,13 @@ def test_question_roundtrip(tmp_path):
     assert back == q
 
 
+def test_question_roundtrip_with_lineage(tmp_path):
+    q = Question(id="Q2", text="Does a longer context window help?", gap="untested",
+                 parent_evidence_id="E1")
+    back = read_question(write_question(str(tmp_path), q))
+    assert back == q
+
+
 def test_evidence_roundtrip(tmp_path):
     e = Evidence(id="E1", outcome="negative", experiment_id="EXP1", note="no gain")
     back = read_evidence(write_evidence(str(tmp_path), e))

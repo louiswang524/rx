@@ -22,8 +22,8 @@ One of: arXiv URL, arXiv ID, DOI, or a local PDF path.
 
 ## Steps
 1. **Locate/scaffold the project (auto-detect).** If a `.rx/` directory exists in the current repo,
-   seed there. Otherwise run `scripts/bootstrap.sh <dir> <name>` to git-init a fresh project (own
-   `.venv`, `.rx/` scaffold, `rx_state` installed) and seed there.
+   seed there. Otherwise run `scripts/bootstrap.sh <dir> <name>` to git-init a fresh project
+   (`.rx/` scaffold, `.venv` symlinked to the shared venv with `rx_state` installed) and seed there.
 2. **Ingest the paper.** Extract its method, contributions, baselines, and headline claim.
 3. **Lightweight critique.** Write strengths, weaknesses, threats-to-validity, and mine the paper's
    own *Limitations / Future Work* — all aimed at extension opportunities, not accept/reject. Read

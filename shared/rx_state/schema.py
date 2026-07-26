@@ -51,3 +51,4 @@ class Question:
     id: str
     text: str
     gap: str = ""
+    parent_evidence_id: str | None = None

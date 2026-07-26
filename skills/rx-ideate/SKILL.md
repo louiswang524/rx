@@ -14,9 +14,14 @@ to write into.
 ## Steps
 1. If no project repo exists, run `scripts/bootstrap.sh <dir> <name>` (fresh git repo, `.rx/` scaffold, `uv venv`).
 2. Read the KB at `~/.rx-kb/` (system/GPU, pitfalls, learnings) so ideas fit the hardware and avoid known dead ends.
-3. Draft 2–4 candidate research questions. For each, state the gap it fills.
+3. Draft 2–4 candidate research questions. For each, state the gap it fills. **When re-entering from
+   a `rx-pipeline --loop continue`** (a prior hypothesis's evidence came back negative), read that
+   `E<n>` and root the new hypothesis in what it ruled out — don't just generate an unrelated idea.
 4. Novelty check: search recent arXiv / Semantic Scholar for the closest prior work; write the delta ("what we do that they don't").
-5. Write each question as a `Q<n>` artifact via `rx_state.store.write_question`. Advance `.rx/state.json` stage to `survey`.
+5. Write each question as a `Q<n>` artifact via `rx_state.store.write_question`. On a loop
+   `continue`, set `parent_evidence_id` to the prior negative `E<n>` so the hypothesis lineage
+   (hypothesis1 → neg → hypothesis2 → ...) is explicit in `.rx/questions/`. Advance
+   `.rx/state.json` stage to `survey`.
 
 ## Outputs
 - `.rx/questions/Q<n>.md` (one per question, with gap + novelty delta)

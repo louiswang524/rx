@@ -22,11 +22,14 @@ directions, seeds `.rx/`, then auto-continues, stopping at the plan lock before 
 ## Two-tier layout
 
 - **Centralized KB** at `~/.rx-kb/` — shared across all projects: system/GPU snapshot,
-  API config (secrets, referenced not copied), reusable `pitfalls/` and `learnings/`, and a
-  shared `uv` package cache. Create/refresh it with `scripts/kb-init.sh`.
-- **Per-project repo** — each research project is a fresh `git init` with its own `.venv` and a
-  `.rx/` traceability tree. Create one with `scripts/bootstrap.sh <dir> <name>` (it also installs
-  the `rx_state` package into the project venv so the skills' Python helpers work).
+  API config (secrets, referenced not copied), reusable `pitfalls/` and `learnings/`, a shared
+  `uv` package cache, and the shared `venv/` (see below). Create/refresh it with `scripts/kb-init.sh`.
+- **Per-project repo** — each research project is a fresh `git init` with its own `.rx/`
+  traceability tree. Create one with `scripts/bootstrap.sh <dir> <name>`.
+- **Shared venv** — one Python venv lives at `~/.rx-kb/venv/` (override with `RX_VENV_DIR`) with
+  `rx_state` installed editable. Every project's `.venv` is a symlink to it, so packages are
+  installed once instead of once per project. `bootstrap.sh` creates/updates the shared venv and
+  points the new project's `.venv` at it.
 
 ## Traceability & rigor (the point of RX)
 
@@ -38,7 +41,7 @@ marks them `[UNSUPPORTED]`. `supported` needs a linked positive experiment; `str
 
 ## Python helpers (`rx_state`)
 
-The skills call these; install the package into the active project venv (`uv pip install -e <this-plugin>`):
+The skills call these; installed once into the shared venv (`uv pip install --python ~/.rx-kb/venv/bin/python -e <this-plugin>`):
 `schema` (artifacts) · `gates` (evidence gates) · `store` (state + artifact I/O) · `survey`
 (paper notes + `collect_baselines`) · `planlock` (blocker-first lock) · `capture` (reproducible runs)
 · `analysis` (metric stats + outcomes) · `anonymize` (double-blind, case-insensitive) · `reproduce`

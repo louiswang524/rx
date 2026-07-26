@@ -39,6 +39,23 @@ def loop_step(loop: dict, improved: bool, gate_cleared: bool) -> tuple[dict, str
     return loop, "continue"
 
 
+def loop_resume_stage(rx_dir: str, needs_replan: bool) -> str:
+    if not needs_replan and is_locked(rx_dir):
+        return "experiment"
+    return "survey"
+
+
+def experiment_loop_step(inner: dict, clean_run: bool) -> tuple[dict, str]:
+    inner = copy.deepcopy(inner)
+    inner["iteration"] = inner.get("iteration", 0) + 1
+
+    if clean_run:
+        return inner, "stop_clean"
+    if inner["iteration"] >= inner.get("max_inner_iters", 3):
+        return inner, "stop_budget"
+    return inner, "continue"
+
+
 def draft_loop_step(draft_loop: dict, recommendation: str) -> tuple[dict, str]:
     draft_loop = copy.deepcopy(draft_loop)
     draft_loop["iteration"] = draft_loop.get("iteration", 0) + 1

@@ -27,8 +27,22 @@ With `--loop`, after `analyze` decide `improved` (beat the locked baseline?) and
 - `stop_success` — a claim cleared the gate; proceed to `write`/`review` and finish.
 - `stop_no_improve` — too many iterations without improvement; write up the negative/ablation result honestly.
 - `stop_budget` — iteration budget exhausted; write up best result so far.
-- `continue` — loop back to `ideate` with the prior **negative** evidence fed in as input for a new hypothesis.
+- `continue` — loop back to `ideate` with the prior **negative** evidence fed in as input for a new
+  hypothesis (pass its `E<n>` id so `rx-ideate` sets `parent_evidence_id` on the new `Q<n>`,
+  keeping an explicit hypothesis1→neg→hypothesis2→... lineage in `.rx/questions/`).
 Plan in machine-time (iterations/compute), never human-days.
+
+This is a real hypothesis loop, not a single pass: hypothesis (`ideate`) → experiment
+(`implementation` + `experiments`) → results (`analyze`) → new hypothesis, repeated until
+`stop_success`/`stop_no_improve`/`stop_budget`. After `rx-ideate` produces the next hypothesis,
+decide whether it changes the metric, comparison family, or needs new baselines. Call
+`rx_state.pipeline.loop_resume_stage(rx_dir, needs_replan)`:
+- Returns `"experiment"` (the common case — same evaluation contract, existing lock still valid):
+  set `state["stage"] = "experiment"` directly and skip `survey`/`plan` entirely for this iteration.
+- Returns `"survey"` (no lock yet, or the new hypothesis needs a different metric/baselines): run
+  `survey` → `plan` as normal before `experiment`.
+This is what keeps loop iterations cheap — most hypothesis-loop iterations should skip straight
+from `ideate` to `experiment`.
 
 ## Drafting loop
 A second, inner loop — separate from the research `## Loop` above and independent of `--loop`.
@@ -40,3 +54,19 @@ Once the research loop settles and the pipeline reaches `write`, iterate the pap
    - `stop_budget` — `iteration >= max_draft_iters`; finish and report the residual major findings honestly.
    - `continue` — run `rx-write --mode=revise`, then back to step 2.
 The drafting loop only edits the paper; it never re-runs experiments or touches `.rx/` evidence.
+
+## Cleanup (optional)
+Once the drafting loop settles (`stop_clean`/`stop_budget`) — or immediately if the research
+`--loop` ended in `stop_no_improve`/`stop_budget` with no drafting to do — offer an optional
+cleanup pass. Never run it automatically, and never touch anything under `.rx/` (the
+traceability record; it's markdown, not the disk hog).
+1. Call `rx_state.cleanup.cleanup_candidates(project_dir, rx_dir)`. It finds
+   `experiments/**/checkpoints/` dirs and training-log dirs (`wandb/`, `tensorboard/`,
+   `lightning_logs/`, `logs/`), each sized and marked `protected` if it backs an experiment whose
+   evidence feeds a `supported`/`strong` claim (i.e. still cited in the final paper).
+2. Show the report via `rx_state.cleanup.format_report` — only ever propose deleting the
+   non-protected candidates (superseded/negative hypotheses from earlier loop iterations).
+3. Ask explicitly before deleting anything. On confirmation, call
+   `rx_state.cleanup.delete_candidates` with just the approved (non-protected) candidates.
+4. If the user declines, or there are no non-protected candidates, skip silently — this step
+   never blocks the pipeline from being considered done.

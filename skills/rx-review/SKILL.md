@@ -11,8 +11,8 @@ Adversarially review the draft the way a real program committee would, surface t
 check reproducibility, and prepare rebuttal material.
 
 ## Steps
-1. Assemble the panel: several independent reviewers with field-specific expertise + a devil's advocate.
-2. Each reviewer files `ReviewFinding`s (`major|minor|praise`) against the draft's claims, baselines, and ablations.
+1. Assemble the panel: several independent reviewers with field-specific expertise + a devil's advocate. If `rx_state.style.read_style_guide(rx_dir)` returns a guide, add a style-conformance reviewer to the panel; if it returns `None`, skip this role (not a blocker).
+2. Each reviewer files `ReviewFinding`s (`major|minor|praise`) against the draft's claims, baselines, and ablations. The style-conformance reviewer instead compares the draft against the style guide's structure/tone/wording conventions and files deviations as `minor` findings.
 3. Compute the panel recommendation with `rx_state.review.recommend` (any major → reject).
 4. Persist the round: `rx_state.review.write_round(rx_dir, n, findings)` → `.rx/reviews/round-<n>.md`. The drafting loop reads this file to drive `rx-write --mode=revise`.
 5. Run `rx_state.review.repro_checklist(has_code, has_seeds, has_configs)`; any missing item must be fixed before submission.

@@ -18,6 +18,19 @@ synchronized outputs from one source of truth so the science never diverges. Run
   finding, then re-render `paper/anon/`. If `latest_round` returns `0`, stop with an error — run
   `--mode=draft` first. Do not regenerate `preamble.tex`/`refs.bib` unless a finding requires it.
 
+## Style calibration
+Before drafting, call `rx_state.style.read_style_guide(rx_dir)`. If it returns `None` (first
+`--mode=draft` run only — never regenerate on `revise` or once a guide exists): call
+`rx_state.style.select_style_sources(notes, 10)` over the existing `.rx/notes/papers/*` corpus
+from `rx-survey` (fewer than 10 is fine, don't fetch more). Actually read those papers' full text
+(fetch the source, not just the `PaperNote` fields — method/baselines/claim alone don't capture
+structure or wording), summarize their section structure, tone, and wording conventions, and write
+it via `rx_state.style.write_style_guide`. If the survey corpus is empty, skip this step entirely
+(no guide, no blocker — draft from evidence alone).
+
+When a style guide exists (this run or a prior one), follow its structure/tone/wording conventions
+when writing `main.tex` in both `draft` and `revise` modes.
+
 ## Steps
 1. Assemble claims (`C<n>`) with their linked evidence/experiments.
 2. For each claim, call `rx_state.gates.can_promote(claim, evidence, experiments)`. If False, render the claim marked `[UNSUPPORTED]` — never state it as fact.

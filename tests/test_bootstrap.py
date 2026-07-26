@@ -32,3 +32,16 @@ def test_bootstrap_scaffolds_project(tmp_path):
     log = subprocess.run(["git", "-C", str(proj), "log", "--oneline"],
                          capture_output=True, text=True, check=True)
     assert log.stdout.strip() != ""
+
+
+def test_bootstrap_shares_one_venv_across_projects(tmp_path):
+    kb = tmp_path / "kb"
+    proj_a = tmp_path / "proja"
+    proj_b = tmp_path / "projb"
+    subprocess.run(["bash", SCRIPT, str(proj_a), "proja", str(kb)], check=True)
+    subprocess.run(["bash", SCRIPT, str(proj_b), "projb", str(kb)], check=True)
+
+    shared_venv = kb / "venv"
+    assert shared_venv.is_dir()
+    assert os.path.realpath(proj_a / ".venv") == os.path.realpath(shared_venv)
+    assert os.path.realpath(proj_b / ".venv") == os.path.realpath(shared_venv)

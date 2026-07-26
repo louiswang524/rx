@@ -40,6 +40,7 @@ Centralized, shared across all research projects.
 - pitfalls/  — shareable mistakes & gotchas
 - learnings/ — reusable techniques that worked
 - env/       — shared uv cache config
+- venv/      — shared Python venv (rx_state installed once, symlinked as `.venv` in every project)
 EOF
 fi
 

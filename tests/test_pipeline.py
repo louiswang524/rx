@@ -1,5 +1,6 @@
 from rx_state.store import default_state
-from rx_state.pipeline import next_stage, advance_stage, stage_blockers, loop_step, draft_loop_step
+from rx_state.pipeline import (next_stage, advance_stage, stage_blockers, loop_step,
+                               draft_loop_step, loop_resume_stage, experiment_loop_step)
 from rx_state.planlock import PlanLock, write_lock
 
 
@@ -110,6 +111,54 @@ def test_draft_loop_stop_budget_on_persistent_reject():
     dl, action = draft_loop_step(_draft(iteration=2, max_draft_iters=3), "reject")
     assert action == "stop_budget"
     assert dl["iteration"] == 3
+
+
+def test_loop_resume_stage_skips_survey_when_locked_and_no_replan(tmp_path):
+    rx = str(tmp_path)
+    write_lock(rx, PlanLock(metric="recall@20", higher_is_better=True,
+                            comparison_family=["ours"], seed_policy=2, baselines=["SASRec"]))
+    assert loop_resume_stage(rx, needs_replan=False) == "experiment"
+
+
+def test_loop_resume_stage_goes_to_survey_when_replan_needed(tmp_path):
+    rx = str(tmp_path)
+    write_lock(rx, PlanLock(metric="recall@20", higher_is_better=True,
+                            comparison_family=["ours"], seed_policy=2, baselines=["SASRec"]))
+    assert loop_resume_stage(rx, needs_replan=True) == "survey"
+
+
+def test_loop_resume_stage_goes_to_survey_when_not_locked(tmp_path):
+    assert loop_resume_stage(str(tmp_path), needs_replan=False) == "survey"
+
+
+def _inner(**kw):
+    base = {"iteration": 0, "max_inner_iters": 3}
+    base.update(kw)
+    return base
+
+
+def test_experiment_loop_stop_clean_on_clean_run():
+    inner, action = experiment_loop_step(_inner(), clean_run=True)
+    assert action == "stop_clean"
+    assert inner["iteration"] == 1
+
+
+def test_experiment_loop_continue_under_budget():
+    inner, action = experiment_loop_step(_inner(), clean_run=False)
+    assert action == "continue"
+    assert inner["iteration"] == 1
+
+
+def test_experiment_loop_stop_budget():
+    inner, action = experiment_loop_step(_inner(iteration=2, max_inner_iters=3), clean_run=False)
+    assert action == "stop_budget"
+    assert inner["iteration"] == 3
+
+
+def test_experiment_loop_step_does_not_mutate_input():
+    original = _inner()
+    experiment_loop_step(original, clean_run=False)
+    assert original["iteration"] == 0
 
 
 def test_draft_loop_reject_then_accept_one_revise_cycle():

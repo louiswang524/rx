@@ -21,6 +21,10 @@ def default_state(project: str, kb_path: str) -> dict:
             "iteration": 0,
             "max_draft_iters": 5,
         },
+        "experiment_loop": {
+            "iteration": 0,
+            "max_inner_iters": 3,
+        },
         "artifacts": {"questions": [], "evidence": [], "claims": [], "experiments": []},
     }
 
@@ -88,12 +92,14 @@ def _read_frontmatter(path: str) -> tuple[dict, str]:
 
 
 def write_question(rx_dir: str, q: Question) -> str:
-    return _write_frontmatter(rx_dir, "questions", q.id, {"id": q.id, "gap": q.gap}, q.text)
+    front = {"id": q.id, "gap": q.gap, "parent_evidence_id": q.parent_evidence_id}
+    return _write_frontmatter(rx_dir, "questions", q.id, front, q.text)
 
 
 def read_question(path: str) -> Question:
     front, body = _read_frontmatter(path)
-    return Question(id=front["id"], text=body, gap=front.get("gap") or "")
+    return Question(id=front["id"], text=body, gap=front.get("gap") or "",
+                    parent_evidence_id=front.get("parent_evidence_id"))
 
 
 def write_evidence(rx_dir: str, e: Evidence) -> str:
