@@ -1,24 +1,39 @@
 ---
 name: rx-pipeline
-description: Orchestrate the full research pipeline (ideate → survey → plan → experiment → analyze → write → review), enforce blocker-first gates between stages, and run the self-improving loop where negative results drive new hypotheses.
+description: Orchestrate the full research pipeline (ideate → survey → grill → plan → experiment → analyze → write → review), enforce blocker-first gates between stages, and run the self-improving loop where negative results drive new hypotheses.
 model: opus
 ---
 
 # rx-pipeline
 
 ## Purpose
-Chain the seven stage skills into one run, enforce the gates between them, and — with `--loop` —
+Chain the stage skills into one run, enforce the gates between them, and — with `--loop` —
 keep iterating on hypotheses until a claim clears the gate or the budget is exhausted.
+
+## Project location
+If this is a brand-new idea and no `.rx/` exists yet, start with `rx-ideate` or `rx-spinoff` so
+the project is bootstrapped under `$RX_RESEARCH_ROOT/<topic>/<project-name>/` (never
+`rx-projects/` or a dated Codex chat folder). Then run the pipeline from that project directory.
 
 ## Steps
 1. Read `.rx/state.json` to find the current `stage` (supports mid-pipeline entry).
-2. Before entering a stage, call `rx_state.pipeline.stage_blockers(rx_dir, stage)`; if non-empty, stop and report the blocker (e.g. `experiment` before a plan lock).
+2. Before entering a stage, call `rx_state.pipeline.stage_blockers(rx_dir, stage)`; if non-empty, stop and report the blocker (e.g. `plan` before `rx-grill`, or `experiment` before a plan lock).
 3. Run the stage skill, then `rx_state.pipeline.advance_stage(state)` to move to `next_stage`.
 4. Repeat until `stage == "done"` (after `review`).
 
+Stage order:
+
+```text
+ideate → survey → grill → plan → experiment → analyze → write → review → done
+```
+
+`rx-grill` is interactive: do **not** auto-skip it on the first pass or after a replan survey.
+It must reach a human-confirmed shared understanding (`.rx/grill/shared-understanding.md`)
+before `rx-plan` may lock the evaluation contract.
+
 ## Outputs
 - A completed run with `.rx/state.json` at `done`
-- All stage artifacts (questions, notes, lock, experiments, evidence, claims, paper outputs, review)
+- All stage artifacts (questions, notes, grill understanding, lock, experiments, evidence, claims, paper outputs, review)
 
 ## Loop
 With `--loop`, after `analyze` decide `improved` (beat the locked baseline?) and `gate_cleared`
@@ -38,9 +53,9 @@ This is a real hypothesis loop, not a single pass: hypothesis (`ideate`) → exp
 decide whether it changes the metric, comparison family, or needs new baselines. Call
 `rx_state.pipeline.loop_resume_stage(rx_dir, needs_replan)`:
 - Returns `"experiment"` (the common case — same evaluation contract, existing lock still valid):
-  set `state["stage"] = "experiment"` directly and skip `survey`/`plan` entirely for this iteration.
+  set `state["stage"] = "experiment"` directly and skip `survey`/`grill`/`plan` entirely for this iteration.
 - Returns `"survey"` (no lock yet, or the new hypothesis needs a different metric/baselines): run
-  `survey` → `plan` as normal before `experiment`.
+  `survey` → `grill` → `plan` as normal before `experiment`.
 This is what keeps loop iterations cheap — most hypothesis-loop iterations should skip straight
 from `ideate` to `experiment`.
 

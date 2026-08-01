@@ -12,7 +12,7 @@ manuscript unless it can point to the evidence, experiment, and commit that back
 
 ```
 rx-spinoff ─┐
-rx-ideate ──┴─→ rx-survey → rx-plan → rx-experiment → rx-analyze → rx-write → rx-review
+rx-ideate ──┴─→ rx-survey → rx-grill → rx-plan → rx-experiment → rx-analyze → rx-write → rx-review
                           \__ rx-pipeline orchestrates all of it, with a self-improving --loop __/
 ```
 
@@ -21,6 +21,10 @@ Two cold-start entry points feed `rx-survey`:
 - **`rx-ideate`** — turn a vague topic into sharp, novelty-checked research questions.
 - **`rx-spinoff`** — turn an existing paper into a critique plus ranked follow-up directions,
   then auto-continue the pipeline (stopping at the plan lock before any compute is spent).
+
+After survey, **`rx-grill`** runs a grill-me-style interview so you and the agent reach equal
+understanding of the research design (question, novelty gap, metric, baselines, falsifiers)
+before `rx-plan` locks the evaluation contract.
 
 Invoke any stage by name ("use rx-plan to lock the metric for..."), or run `rx-pipeline` to
 chain the whole thing, optionally with `--loop` so negative results feed the next hypothesis
@@ -42,15 +46,27 @@ instead of getting discarded.
 
 ```bash
 # one-time: set up the shared knowledge base + shared venv
+# also records the canonical research root (~/research or /mnt/c/Users/<you>/research)
 bash scripts/kb-init.sh
 
-# bootstrap a new research project (fresh git repo, .rx/ scaffold, venv symlinked in)
-bash scripts/bootstrap.sh ~/my-project "my-project-name"
+# bootstrap a new research project under research/<topic>/<name>/
+bash scripts/bootstrap.sh my-project-name --topic llm-agents
 
 # then, inside Claude Code or Codex, from that project directory:
 #   "use rx-ideate to explore <topic>"
 #   "use rx-pipeline --loop to run the whole thing"
 ```
+
+New projects always land in the research catalog tree:
+
+```text
+$RX_RESEARCH_ROOT/<topic>/<project-name>/
+  code/  writings/  experiments/  publication/{arxiv,anon}/  .rx/
+```
+
+Topics: `llm-agents`, `llm-reasoning`, `llm-inference`, `recsys`, `multimodal`,
+`dl-optimization`, `_archive`. Override the root with `RX_RESEARCH_ROOT` or by editing
+`~/.rx-kb/research_root`.
 
 Every project gets its own `.rx/` traceability tree, but shares one Python venv
 (`~/.rx-kb/venv/`, override with `RX_VENV_DIR`) so `rx_state` and its dependencies are installed
@@ -58,13 +74,14 @@ once instead of once per project.
 
 ## Layout
 
-- `skills/` — the nine stage skills (`rx-ideate`, `rx-survey`, `rx-plan`, `rx-experiment`,
-  `rx-analyze`, `rx-write`, `rx-review`, `rx-pipeline`, `rx-spinoff`), each a `SKILL.md`.
+- `skills/` — the ten stage skills (`rx-ideate`, `rx-survey`, `rx-grill`, `rx-plan`,
+  `rx-experiment`, `rx-analyze`, `rx-write`, `rx-review`, `rx-pipeline`, `rx-spinoff`), each a
+  `SKILL.md`.
 - `shared/rx_state/` — the Python package the skills call: `schema` (artifact types), `gates`
-  (evidence → claim-strength rules), `store` (state + artifact I/O), `survey`, `planlock`,
-  `capture`, `analysis`, `anonymize`, `reproduce`, `review`, `pipeline` (the stage machine and
-  both loops), `style` (writing-style calibration from surveyed papers), `cleanup` (optional,
-  confirmation-gated disk cleanup for checkpoints/logs).
+  (evidence → claim-strength rules), `store` (state + artifact I/O), `survey`, `grill`,
+  `planlock`, `capture`, `analysis`, `anonymize`, `reproduce`, `review`, `pipeline` (the stage
+  machine and both loops), `style` (writing-style calibration from surveyed papers), `cleanup`
+  (optional, confirmation-gated disk cleanup for checkpoints/logs).
 - `scripts/` — `kb-init.sh` (shared knowledge base + venv) and `bootstrap.sh` (new project
   scaffold).
 - `tests/` — pytest suite for `rx_state`.
@@ -73,10 +90,10 @@ once instead of once per project.
 
 ## What a run produces
 
-`rx-write` emits four synchronized outputs from one source of truth: `paper/arxiv/` and
-`paper/anon/` (LaTeX, the anon copy anonymity-linted for double-blind submission), `code/` +
+`rx-write` emits four synchronized outputs from one source of truth: `publication/arxiv/` and
+`publication/anon/` (LaTeX, the anon copy anonymity-linted for double-blind submission), `code/` +
 `code/REPRODUCE.md`, and `blog/<slug>.md` — the blog post is drafted but never auto-published;
-it always asks for confirmation first.
+it always asks for confirmation first. Working notes that are not venue-locked live in `writings/`.
 
 ## Status
 

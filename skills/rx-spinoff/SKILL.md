@@ -20,10 +20,24 @@ One of: arXiv URL, arXiv ID, DOI, or a local PDF path.
 - Local PDF → read the file directly. If text extraction yields empty/garbage output (a scanned
   PDF), stop with a clear message asking for an arXiv ID or a text-based PDF; do not seed `.rx/`.
 
+## Project location (required)
+All new RX projects live under the canonical research tree:
+
+```text
+$RX_RESEARCH_ROOT/<topic>/<project-name>/
+```
+
+Allowed topics: `llm-agents`, `llm-reasoning`, `llm-inference`, `recsys`, `multimodal`,
+`dl-optimization`, `_archive`. Never bootstrap into `rx-projects/`, `Documents/Codex/`, or a
+random home-directory folder.
+
 ## Steps
 1. **Locate/scaffold the project (auto-detect).** If a `.rx/` directory exists in the current repo,
-   seed there. Otherwise run `scripts/bootstrap.sh <dir> <name>` to git-init a fresh project
-   (`.rx/` scaffold, `.venv` symlinked to the shared venv with `rx_state` installed) and seed there.
+   seed there. Otherwise choose a kebab-case `project-name` and a `topic` from the allowed list
+   (ask if ambiguous), then run:
+   `bash scripts/bootstrap.sh <project-name> --topic <topic>`
+   Continue inside the printed path
+   (`<research-root>/<topic>/<project-name>/`).
 2. **Ingest the paper.** Extract its method, contributions, baselines, and headline claim.
 3. **Lightweight critique.** Write strengths, weaknesses, threats-to-validity, and mine the paper's
    own *Limitations / Future Work* — all aimed at extension opportunities, not accept/reject. Read
@@ -39,8 +53,9 @@ One of: arXiv URL, arXiv ID, DOI, or a local PDF path.
      carrying its gap; put the novelty delta in the question body.
    - Critique → `.rx/notes/spinoff-<key>.md` (plain markdown; no new `rx_state` code).
 6. **Auto-continue.** Set `state["stage"] = "survey"` and save via `rx_state.store.save_state`, then
-   invoke `rx-pipeline`. It flows survey → plan and stops at the **plan lock** —
-   `rx_state.pipeline.stage_blockers` blocks `experiment` until `rx-plan` has written a lock — so no
+   invoke `rx-pipeline`. It flows survey → **grill** → plan and stops at the **plan lock** —
+   `rx-grill` must reach a human-confirmed shared understanding before `rx-plan` locks metrics,
+   and `rx_state.pipeline.stage_blockers` blocks `experiment` until that lock exists — so no
    compute is spent before you approve. State the stop explicitly and how to resume.
 
 ## Outputs

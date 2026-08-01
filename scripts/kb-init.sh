@@ -2,11 +2,21 @@
 set -euo pipefail
 
 KB_DIR="${1:-$HOME/.rx-kb}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 mkdir -p "$KB_DIR"/{system,secrets,pitfalls,learnings,env}
 
 # gitignore secrets
 if ! grep -qxF "secrets/" "$KB_DIR/.gitignore" 2>/dev/null; then
   echo "secrets/" >> "$KB_DIR/.gitignore"
+fi
+
+# Persist the canonical research root used by bootstrap.sh for new projects.
+# Override anytime with RX_RESEARCH_ROOT, or by editing $KB_DIR/research_root.
+if [ -n "${RX_RESEARCH_ROOT:-}" ]; then
+  printf '%s\n' "$RX_RESEARCH_ROOT" > "$KB_DIR/research_root"
+elif [ ! -s "$KB_DIR/research_root" ]; then
+  root="$("$SCRIPT_DIR/research-root.sh" "$KB_DIR")"
+  printf '%s\n' "$root" > "$KB_DIR/research_root"
 fi
 
 # capture system + GPU info (best-effort; never fail the script)
@@ -41,7 +51,11 @@ Centralized, shared across all research projects.
 - learnings/ — reusable techniques that worked
 - env/       — shared uv cache config
 - venv/      — shared Python venv (rx_state installed once, symlinked as `.venv` in every project)
+- research_root — absolute path to the canonical research tree (topics → projects)
 EOF
 fi
 
 echo "KB ready at $KB_DIR"
+if [ -f "$KB_DIR/research_root" ]; then
+  echo "Research root: $(tr -d '\r\n' < "$KB_DIR/research_root")"
+fi

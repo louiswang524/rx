@@ -14,9 +14,11 @@ synchronized outputs from one source of truth so the science never diverges. Run
 ## Modes
 - `--mode=draft` (default): write the paper from scratch from claims/evidence.
 - `--mode=revise`: read the latest review round via `rx_state.review.latest_round` +
-  `rx_state.review.read_round`, and edit the existing `paper/arxiv/main.tex` to address each
-  finding, then re-render `paper/anon/`. If `latest_round` returns `0`, stop with an error — run
-  `--mode=draft` first. Do not regenerate `preamble.tex`/`refs.bib` unless a finding requires it.
+  `rx_state.review.read_round`, and edit the existing `publication/arxiv/main.tex` to address each
+  finding, then re-render `publication/anon/`. If a legacy project still uses `paper/` instead of
+  `publication/`, keep using `paper/` for that project. If `latest_round` returns `0`, stop with an
+  error — run `--mode=draft` first. Do not regenerate `preamble.tex`/`refs.bib` unless a finding
+  requires it.
 
 ## Style calibration
 Before drafting, call `rx_state.style.read_style_guide(rx_dir)`. If it returns `None` (first
@@ -34,21 +36,27 @@ when writing `main.tex` in both `draft` and `revise` modes.
 ## Steps
 1. Assemble claims (`C<n>`) with their linked evidence/experiments.
 2. For each claim, call `rx_state.gates.can_promote(claim, evidence, experiments)`. If False, render the claim marked `[UNSUPPORTED]` — never state it as fact.
-3. Write `paper/arxiv/preamble.tex` from `rx_state.latex.PREAMBLE`, and `paper/arxiv/refs.bib` from `rx_state.latex.render_bib(notes)` over `.rx/notes/papers/*` (unknown bib fields are left empty for the human to enrich).
-4. Write the LaTeX body `paper/arxiv/main.tex` (abstract, method, experiments, related work) that `\input{preamble}` and `\bibliography{refs}`, anchored to evidence.
-5. Render `paper/anon/` (same three files) by passing the source through `rx_state.anonymize.anonymize_text(...)`.
+3. Write `publication/arxiv/preamble.tex` from `rx_state.latex.PREAMBLE`, and
+   `publication/arxiv/refs.bib` from `rx_state.latex.render_bib(notes)` over `.rx/notes/papers/*`
+   (unknown bib fields are left empty for the human to enrich). Legacy fallback: `paper/arxiv/`.
+4. Write the LaTeX body `publication/arxiv/main.tex` (abstract, method, experiments, related work)
+   that `\input{preamble}` and `\bibliography{refs}`, anchored to evidence.
+5. Render `publication/anon/` (same three files) by passing the source through
+   `rx_state.anonymize.anonymize_text(...)`.
 6. Generate `code/REPRODUCE.md` via `rx_state.reproduce.render_reproduce(experiments, run_command)`; assemble runnable `code/`.
 7. Draft `blog/<slug>.md` (short, public, self-identifying — the opposite of anon; stays markdown).
+   Keep working notes/drafts that are not venue-locked under `writings/`.
 
 ## Outputs
-- `paper/arxiv/{main.tex, preamble.tex, refs.bib}` — LaTeX preprint (full identity)
-- `paper/anon/{main.tex, preamble.tex, refs.bib}` — double-blind submission (anonymized)
+- `publication/arxiv/{main.tex, preamble.tex, refs.bib}` — LaTeX preprint (full identity)
+- `publication/anon/{main.tex, preamble.tex, refs.bib}` — double-blind submission (anonymized)
 - `code/` + `code/REPRODUCE.md` — reproducibility bundle
 - `blog/<slug>.md` — short GitHub-blog version (markdown)
+- `writings/` — non-venue working drafts and notes
 
 ## Anonymity
 Before submission, run `rx_state.anonymize.lint_anonymity(anon_text, author_names, self_urls)` on the
-`paper/anon/main.tex` content. If it returns any findings (author names, self URLs, "our prior work",
+`publication/anon/main.tex` content. If it returns any findings (author names, self URLs, "our prior work",
 acknowledgment/funding mentions), fix them and re-lint until the list is empty. In `revise` mode,
 re-run this lint after every edit.
 

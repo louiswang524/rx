@@ -9,7 +9,7 @@ routing and is ignored by Codex).
 
 ```
 rx-spinoff ─┐
-rx-ideate ──┴─→ rx-survey -> rx-plan -> rx-experiment -> rx-analyze -> rx-write -> rx-review
+rx-ideate ──┴─→ rx-survey -> rx-grill -> rx-plan -> rx-experiment -> rx-analyze -> rx-write -> rx-review
                           \__ rx-pipeline orchestrates all + self-improving --loop __/
 ```
 
@@ -17,15 +17,23 @@ Invoke a stage by name (e.g. "use rx-ideate to ...") or run `rx-pipeline` to cha
 
 Two cold-start front-ends feed `rx-survey`: `rx-ideate` (from a vague topic) and `rx-spinoff`
 (from an existing paper — it critiques the paper, derives ranked novelty-checked follow-up
-directions, seeds `.rx/`, then auto-continues, stopping at the plan lock before any compute).
+directions, seeds `.rx/`, then auto-continues through survey → grill → plan, stopping at the
+plan lock before any compute). `rx-grill` is a grill-me-style interview so human and agent
+reach equal understanding of the research design before the evaluation contract is locked.
 
 ## Two-tier layout
 
 - **Centralized KB** at `~/.rx-kb/` — shared across all projects: system/GPU snapshot,
   API config (secrets, referenced not copied), reusable `pitfalls/` and `learnings/`, a shared
-  `uv` package cache, and the shared `venv/` (see below). Create/refresh it with `scripts/kb-init.sh`.
+  `uv` package cache, the shared `venv/` (see below), and `research_root` (path to the catalog
+  tree). Create/refresh it with `scripts/kb-init.sh`.
+- **Research catalog root** — all new projects go under
+  `$RX_RESEARCH_ROOT/<topic>/<project-name>/` (default `~/research` or the Windows
+  `/mnt/c/Users/<you>/research` tree). Topics:
+  `llm-agents`, `llm-reasoning`, `llm-inference`, `recsys`, `multimodal`, `dl-optimization`,
+  `_archive`. Create with `scripts/bootstrap.sh <name> --topic <topic>`.
 - **Per-project repo** — each research project is a fresh `git init` with its own `.rx/`
-  traceability tree. Create one with `scripts/bootstrap.sh <dir> <name>`.
+  traceability tree plus `code/`, `writings/`, `experiments/`, `publication/<venue>/`.
 - **Shared venv** — one Python venv lives at `~/.rx-kb/venv/` (override with `RX_VENV_DIR`) with
   `rx_state` installed editable. Every project's `.venv` is a symlink to it, so packages are
   installed once instead of once per project. `bootstrap.sh` creates/updates the shared venv and
@@ -43,16 +51,17 @@ marks them `[UNSUPPORTED]`. `supported` needs a linked positive experiment; `str
 
 The skills call these; installed once into the shared venv (`uv pip install --python ~/.rx-kb/venv/bin/python -e <this-plugin>`):
 `schema` (artifacts) · `gates` (evidence gates) · `store` (state + artifact I/O) · `survey`
-(paper notes + `collect_baselines`) · `planlock` (blocker-first lock) · `capture` (reproducible runs)
-· `analysis` (metric stats + outcomes) · `anonymize` (double-blind, case-insensitive) · `reproduce`
-(`REPRODUCE.md`) · `review` (panel + repro checklist) · `pipeline` (stage machine + `loop_step`).
+(paper notes + `collect_baselines`) · `grill` (shared-understanding artifact after survey) ·
+`planlock` (blocker-first lock) · `capture` (reproducible runs) · `analysis` (metric stats +
+outcomes) · `anonymize` (double-blind, case-insensitive) · `reproduce` (`REPRODUCE.md`) ·
+`review` (panel + repro checklist) · `pipeline` (stage machine + `loop_step`).
 
 ## Outputs of a run
 
-`rx-write` emits four synchronized artifacts: `paper/arxiv/` and `paper/anon/` as LaTeX source
-(`main.tex` + `preamble.tex` + `refs.bib`; the anon copy is anonymity-linted), `code/` +
-`code/REPRODUCE.md`, and `blog/<slug>.md` (markdown). The blog is never auto-pushed — it asks
-for confirmation first.
+`rx-write` emits four synchronized artifacts: `publication/arxiv/` and `publication/anon/` as
+LaTeX source (`main.tex` + `preamble.tex` + `refs.bib`; the anon copy is anonymity-linted),
+`code/` + `code/REPRODUCE.md`, and `blog/<slug>.md` (markdown). The blog is never auto-pushed —
+it asks for confirmation first. Legacy projects that still use `paper/` keep that layout.
 
 ## Loop mode
 

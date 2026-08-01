@@ -11,8 +11,18 @@ def test_bootstrap_scaffolds_project(tmp_path):
     subprocess.run(["bash", SCRIPT, str(proj), "myproj", str(kb)], check=True)
 
     assert (proj / ".git").is_dir()
-    for d in ("experiments", "notes", "paper/arxiv", "paper/anon",
-              ".rx/questions", ".rx/evidence", ".rx/claims", ".rx/experiments"):
+    for d in (
+        "code",
+        "writings",
+        "experiments",
+        "notes",
+        "publication/arxiv",
+        "publication/anon",
+        ".rx/questions",
+        ".rx/evidence",
+        ".rx/claims",
+        ".rx/experiments",
+    ):
         assert (proj / d).is_dir(), d
     assert (proj / "PROJECT.md").is_file()
 
@@ -32,6 +42,29 @@ def test_bootstrap_scaffolds_project(tmp_path):
     log = subprocess.run(["git", "-C", str(proj), "log", "--oneline"],
                          capture_output=True, text=True, check=True)
     assert log.stdout.strip() != ""
+
+
+def test_bootstrap_under_research_topic(tmp_path, monkeypatch):
+    research = tmp_path / "research"
+    kb = tmp_path / "kb"
+    monkeypatch.setenv("RX_RESEARCH_ROOT", str(research))
+
+    subprocess.run(
+        ["bash", SCRIPT, "dawn-memory", "--topic", "llm-agents", str(kb)],
+        check=True,
+    )
+
+    proj = research / "llm-agents" / "dawn-memory"
+    assert (proj / "PROJECT.md").is_file()
+    assert (proj / "publication" / "arxiv").is_dir()
+    assert (proj / "code").is_dir()
+    assert (proj / ".rx" / "state.json").is_file()
+
+    root_file = (kb / "research_root").read_text(encoding="utf-8").strip()
+    assert root_file == str(research)
+
+    text = (proj / "PROJECT.md").read_text(encoding="utf-8")
+    assert "llm-agents" in text
 
 
 def test_bootstrap_shares_one_venv_across_projects(tmp_path):

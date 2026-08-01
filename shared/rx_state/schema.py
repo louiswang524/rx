@@ -2,7 +2,17 @@ from dataclasses import dataclass, field
 
 STRENGTHS = ("speculative", "supported", "strong")
 OUTCOMES = ("positive", "negative", "inconclusive")
-STAGES = ("ideate", "survey", "plan", "experiment", "analyze", "write", "review", "done")
+STAGES = (
+    "ideate",
+    "survey",
+    "grill",
+    "plan",
+    "experiment",
+    "analyze",
+    "write",
+    "review",
+    "done",
+)
 
 
 def validate_strength(s: str) -> None:

@@ -43,6 +43,8 @@ def test_loop_step_does_not_mutate_input():
 
 def test_next_stage_walks_the_pipeline():
     assert next_stage("ideate") == "survey"
+    assert next_stage("survey") == "grill"
+    assert next_stage("grill") == "plan"
     assert next_stage("write") == "review"
     assert next_stage("review") == "done"
     assert next_stage("done") == "done"
@@ -53,6 +55,16 @@ def test_advance_stage_is_pure():
     nxt = advance_stage(st)
     assert nxt["stage"] == "survey"
     assert st["stage"] == "ideate"           # original unchanged
+
+
+def test_plan_blocked_until_grilled(tmp_path):
+    from rx_state.grill import SharedUnderstanding, write_understanding
+
+    rx = str(tmp_path)
+    blockers = stage_blockers(rx, "plan")
+    assert blockers and any("grill" in b for b in blockers)
+    write_understanding(rx, SharedUnderstanding(summary="Agreed: metric=recall@20"))
+    assert stage_blockers(rx, "plan") == []
 
 
 def test_experiment_blocked_until_locked(tmp_path):
@@ -66,6 +78,7 @@ def test_experiment_blocked_until_locked(tmp_path):
 
 def test_other_stages_have_no_blockers(tmp_path):
     assert stage_blockers(str(tmp_path), "survey") == []
+    assert stage_blockers(str(tmp_path), "grill") == []
     assert stage_blockers(str(tmp_path), "write") == []
 
 

@@ -1,6 +1,7 @@
 import copy
 from rx_state.schema import STAGES
 from rx_state.planlock import is_locked
+from rx_state.grill import is_grilled
 
 
 def next_stage(current: str) -> str:
@@ -15,6 +16,8 @@ def advance_stage(state: dict) -> dict:
 
 
 def stage_blockers(rx_dir: str, stage: str) -> list[str]:
+    if stage == "plan" and not is_grilled(rx_dir):
+        return ["plan requires a shared understanding (run rx-grill first)"]
     if stage == "experiment" and not is_locked(rx_dir):
         return ["experiment requires a plan lock (run rx-plan first)"]
     return []

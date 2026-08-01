@@ -11,8 +11,29 @@ Convert a fuzzy idea into `Q<n>` research questions with an explicit gap and a n
 delta vs. recent prior work, and stand up the project repo so every later stage has state
 to write into.
 
+## Project location (required)
+All new RX projects live under the canonical research tree:
+
+```text
+$RX_RESEARCH_ROOT/<topic>/<project-name>/
+```
+
+Default research root (in order): `RX_RESEARCH_ROOT` env, `~/.rx-kb/research_root`, then
+`~/research` (or the Windows path `/mnt/c/Users/<you>/research` when that exists).
+
+Allowed topics: `llm-agents`, `llm-reasoning`, `llm-inference`, `recsys`, `multimodal`,
+`dl-optimization`, `_archive`.
+
+Never bootstrap into `rx-projects/`, `Documents/Codex/`, or a random home-directory folder.
+
 ## Steps
-1. If no project repo exists, run `scripts/bootstrap.sh <dir> <name>` (fresh git repo, `.rx/` scaffold, `uv venv`).
+1. If no project repo exists (no `.rx/` in the current workspace):
+   - Infer a kebab-case `project-name` and choose a `topic` from the allowed list (ask the
+     user if the topic is ambiguous).
+   - Run:
+     `bash scripts/bootstrap.sh <project-name> --topic <topic>`
+   - Continue all later work inside the printed project path
+     (`<research-root>/<topic>/<project-name>/`).
 2. Read the KB at `~/.rx-kb/` (system/GPU, pitfalls, learnings) so ideas fit the hardware and avoid known dead ends.
 3. Draft 2–4 candidate research questions. For each, state the gap it fills. **When re-entering from
    a `rx-pipeline --loop continue`** (a prior hypothesis's evidence came back negative), read that
@@ -24,5 +45,7 @@ to write into.
    `.rx/state.json` stage to `survey`.
 
 ## Outputs
+- Project scaffold under `<research-root>/<topic>/<project-name>/` with
+  `code/`, `writings/`, `experiments/`, `publication/{arxiv,anon}/`, and `.rx/`
 - `.rx/questions/Q<n>.md` (one per question, with gap + novelty delta)
 - Updated `.rx/state.json` (stage = survey)

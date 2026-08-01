@@ -11,6 +11,8 @@ def test_kb_init_creates_tree(tmp_path):
         assert (kb / sub).is_dir()
     assert (kb / "index.md").is_file()
     assert (kb / "system" / "system.md").is_file()
+    assert (kb / "research_root").is_file()
+    assert (kb / "research_root").read_text(encoding="utf-8").strip()
     gi = (kb / ".gitignore").read_text()
     assert "secrets/" in gi
 

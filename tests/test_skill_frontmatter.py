@@ -40,7 +40,7 @@ def test_write_skill_covers_four_outputs_and_gates():
     assert front["model"] == "sonnet"
     for section in ("## Purpose", "## Steps", "## Outputs", "## Anonymity", "## Blog"):
         assert section in body
-    for out in ("paper/arxiv", "paper/anon", "code/", "blog/"):
+    for out in ("publication/arxiv", "publication/anon", "code/", "blog/"):
         assert out in body
     assert "can_promote" in body and "[UNSUPPORTED]" in body
     assert "lint_anonymity" in body
@@ -54,9 +54,18 @@ def test_write_skill_latex_and_modes():
     assert "--mode=draft" in body and "--mode=revise" in body
     assert "latest_round" in body
     # existing guarantees still hold
-    for token in ("paper/arxiv", "paper/anon", "code/", "blog/",
+    for token in ("publication/arxiv", "publication/anon", "code/", "blog/",
                   "can_promote", "[UNSUPPORTED]", "lint_anonymity", "confirm"):
         assert token in body
+
+
+def test_ideate_and_spinoff_use_research_root():
+    _, ideate = _parse_frontmatter("rx-ideate/SKILL.md")
+    _, spinoff = _parse_frontmatter("rx-spinoff/SKILL.md")
+    for body in (ideate, spinoff):
+        assert "--topic" in body
+        assert "llm-agents" in body
+        assert "rx-projects/" in body  # explicitly forbidden
 
 
 def test_spinoff_skill_frontmatter_and_content():
@@ -84,8 +93,8 @@ def test_review_skill_persists_rounds():
 
 
 @pytest.mark.parametrize("name,model", [
-    ("rx-ideate", "opus"), ("rx-survey", "sonnet"), ("rx-plan", "sonnet"),
-    ("rx-experiment", "sonnet"), ("rx-analyze", "opus"),
+    ("rx-ideate", "opus"), ("rx-survey", "sonnet"), ("rx-grill", "opus"),
+    ("rx-plan", "sonnet"), ("rx-experiment", "sonnet"), ("rx-analyze", "opus"),
     ("rx-write", "sonnet"), ("rx-review", "opus"), ("rx-pipeline", "opus"),
     ("rx-spinoff", "opus"),
 ])
@@ -98,6 +107,20 @@ def test_all_skills_have_valid_frontmatter(name, model):
         assert section in body, f"{name} missing {section}"
 
 
+def test_grill_skill_is_interactive_alignment():
+    front, body = _parse_frontmatter("rx-grill/SKILL.md")
+    assert front["name"] == "rx-grill"
+    # core grill-me loop (Matt Pocock)
+    assert "interview me relentlessly" in body.lower()
+    assert "shared understanding" in body.lower()
+    assert "recommended answer" in body.lower()
+    assert "exploring the codebase" in body.lower()
+    assert "write_understanding" in body
+    assert "shared-understanding.md" in body
+    # sits between survey and plan/experiment
+    assert "survey" in body.lower() and "plan" in body.lower()
+
+
 def test_pipeline_skill_covers_loop_and_gates():
     front, body = _parse_frontmatter("rx-pipeline/SKILL.md")
     assert front["name"] == "rx-pipeline"
@@ -107,6 +130,7 @@ def test_pipeline_skill_covers_loop_and_gates():
     assert "stage_blockers" in body      # enforces blocker-first
     assert "loop_step" in body           # drives the loop
     assert "negative" in body.lower()    # negative results feed the loop
+    assert "grill" in body.lower()       # alignment stage before plan
 
 
 def test_pipeline_skill_covers_drafting_loop():

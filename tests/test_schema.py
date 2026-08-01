@@ -10,6 +10,10 @@ def test_constant_literals():
     assert STRENGTHS == ("speculative", "supported", "strong")
     assert OUTCOMES == ("positive", "negative", "inconclusive")
     assert STAGES[0] == "ideate" and STAGES[-1] == "done"
+    assert STAGES == (
+        "ideate", "survey", "grill", "plan", "experiment",
+        "analyze", "write", "review", "done",
+    )
 
 
 def test_dataclasses_construct():
