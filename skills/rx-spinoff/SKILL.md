@@ -44,8 +44,11 @@ random home-directory folder.
    `~/.rx-kb/` (system/GPU snapshot, pitfalls, learnings) so directions fit the hardware and avoid
    known dead ends.
 4. **Derive 2–4 follow-up directions.** For each, write a **novelty delta** vs. the seed paper
-   ("what we do that they don't"). Rank by leverage-given-hardware, and designate the top-ranked
-   one as the **primary** direction the pipeline pursues first.
+   ("what we do that they don't") on the four axes in
+   `skills/_shared/references/conference-outcome-lessons.md` (framing / mechanism / insight /
+   domain), plus a falsifier and evidence expectation. Reject novel-but-empty directions.
+   Rank by leverage-given-hardware, and designate the top-ranked one as the **primary**
+   direction the pipeline pursues first.
 5. **Seed `.rx/`.**
    - Seed paper → `PaperNote` via `rx_state.survey.write_note` (so its baselines join the set
      `rx-plan` compares against — confirm with `rx_state.survey.collect_baselines`).

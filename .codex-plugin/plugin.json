@@ -1,6 +1,6 @@
 {
   "name": "rx",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "description": "Unified ML-research skill set for Codex: ideate -> survey -> grill -> plan -> experiment -> analyze -> write -> review, with a self-improving loop and evidence gates.",
   "skills": "./skills/",
   "interface": {

@@ -20,6 +20,14 @@ class SharedUnderstanding:
     scope_cuts: list[str] = field(default_factory=list)
     machine_time_budget: str = ""
     open_risks: list[str] = field(default_factory=list)
+    # Conference-outcome / Scoop-Check style fields (optional; empty defaults)
+    diff_framing: str = ""
+    diff_mechanism: str = ""
+    diff_insight: str = ""
+    diff_domain: str = ""
+    collision_threats: list[str] = field(default_factory=list)
+    evidence_expectations: list[str] = field(default_factory=list)
+    failure_mode_checks: list[str] = field(default_factory=list)
     summary: str = ""
 
 
@@ -38,6 +46,13 @@ def write_understanding(rx_dir: str, understanding: SharedUnderstanding) -> str:
         "scope_cuts": understanding.scope_cuts,
         "machine_time_budget": understanding.machine_time_budget,
         "open_risks": understanding.open_risks,
+        "diff_framing": understanding.diff_framing,
+        "diff_mechanism": understanding.diff_mechanism,
+        "diff_insight": understanding.diff_insight,
+        "diff_domain": understanding.diff_domain,
+        "collision_threats": understanding.collision_threats,
+        "evidence_expectations": understanding.evidence_expectations,
+        "failure_mode_checks": understanding.failure_mode_checks,
     }
     path = _path(rx_dir)
     body = understanding.summary.strip() or (
@@ -67,6 +82,13 @@ def read_understanding(rx_dir: str) -> SharedUnderstanding:
         scope_cuts=list(front.get("scope_cuts") or []),
         machine_time_budget=front.get("machine_time_budget") or "",
         open_risks=list(front.get("open_risks") or []),
+        diff_framing=front.get("diff_framing") or "",
+        diff_mechanism=front.get("diff_mechanism") or "",
+        diff_insight=front.get("diff_insight") or "",
+        diff_domain=front.get("diff_domain") or "",
+        collision_threats=list(front.get("collision_threats") or []),
+        evidence_expectations=list(front.get("evidence_expectations") or []),
+        failure_mode_checks=list(front.get("failure_mode_checks") or []),
         summary=(body or "").strip(),
     )
 

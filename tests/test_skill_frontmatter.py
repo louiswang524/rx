@@ -59,6 +59,72 @@ def test_write_skill_latex_and_modes():
         assert token in body
 
 
+def test_write_skill_paper_structure_and_references():
+    _, body = _parse_frontmatter("rx-write/SKILL.md")
+    assert "## Paper structure" in body
+    assert "story-board" in body
+    assert "best-practices.md" in body
+    assert "conference-outcome-lessons.md" in body
+    assert "tone.md" in body
+    assert "understated" in body.lower()
+    assert "ping" in body.lower()
+    assert "novel-but-empty" in body.lower()
+    assert "framing" in body.lower() and "mechanism" in body.lower()
+    for section in (
+        "Abstract",
+        "Introduction",
+        "Method",
+        "Experiments",
+        "Related Work",
+        "Limitations",
+        "Conclusion and Future Work",
+    ):
+        assert section in body, f"missing outline section {section}"
+    # Related Work comes after Method/Experiments inside the fenced outline
+    fence_start = body.index("```text")
+    outline = body[fence_start: body.index("```", fence_start + 3)]
+    assert outline.index("Method") < outline.index("Related Work")
+    assert outline.index("Experiments") < outline.index("Related Work")
+    ref_dir = os.path.join(ROOT, "skills", "rx-write", "references")
+    for name in (
+        "best-practices.md",
+        "tone.md",
+        "conference-outcome-lessons.md",
+        "paper-outline.md",
+        "writing-craft.md",
+        "abstract.md",
+        "introduction.md",
+        "related-work.md",
+        "method.md",
+        "experiments.md",
+        "limitations-conclusion.md",
+    ):
+        path = os.path.join(ref_dir, name)
+        assert os.path.isfile(path), f"missing reference guide {name}"
+        assert f"references/{name}" in body
+    shared = os.path.join(
+        ROOT, "skills", "_shared", "references", "conference-outcome-lessons.md"
+    )
+    assert os.path.isfile(shared)
+
+
+def test_ideate_survey_grill_use_conference_outcome_lessons():
+    _, ideate = _parse_frontmatter("rx-ideate/SKILL.md")
+    _, survey = _parse_frontmatter("rx-survey/SKILL.md")
+    _, grill = _parse_frontmatter("rx-grill/SKILL.md")
+    for body in (ideate, survey, grill):
+        assert "conference-outcome-lessons" in body
+        assert "bottleneck" in body.lower()
+    assert "falsif" in ideate.lower()
+    assert "novel-but-empty" in ideate.lower()
+    assert "open-gap" in survey.lower() or "open gap" in survey.lower()
+    assert "closest" in survey.lower()
+    assert "collision" in grill.lower()
+    assert "evidence_expectations" in grill
+    assert "failure_mode" in grill.lower()
+    assert "write_understanding" in grill
+
+
 def test_ideate_and_spinoff_use_research_root():
     _, ideate = _parse_frontmatter("rx-ideate/SKILL.md")
     _, spinoff = _parse_frontmatter("rx-spinoff/SKILL.md")
@@ -119,6 +185,9 @@ def test_grill_skill_is_interactive_alignment():
     assert "shared-understanding.md" in body
     # sits between survey and plan/experiment
     assert "survey" in body.lower() and "plan" in body.lower()
+    # conference-outcome audit gate
+    assert "collision" in body.lower()
+    assert "diff_" in body or "four-axis" in body.lower() or "4-axis" in body.lower()
 
 
 def test_pipeline_skill_covers_loop_and_gates():
