@@ -4,7 +4,8 @@ import yaml
 from rx_state.schema import Experiment
 
 
-def capture_run(rx_dir, exp_id, seeds, baseline, config, *, commit, gpu) -> str:
+def capture_run(rx_dir, exp_id, seeds, baseline, config, *, commit, gpu,
+                 goal, changes, result, conclusion, next_steps) -> str:
     exp_dir = os.path.join(rx_dir, "experiments", exp_id)
     os.makedirs(exp_dir, exist_ok=True)
     front = {"id": exp_id, "seeds": list(seeds), "baseline": baseline,
@@ -17,6 +18,11 @@ def capture_run(rx_dir, exp_id, seeds, baseline, config, *, commit, gpu) -> str:
         f.write("## Config\n\n```json\n")
         f.write(json.dumps(config, indent=2))
         f.write("\n```\n")
+        f.write(f"\n## Goal\n\n{goal}\n")
+        f.write(f"\n## Changes\n\n{changes}\n")
+        f.write(f"\n## Result\n\n{result}\n")
+        f.write(f"\n## Conclusion\n\n{conclusion}\n")
+        f.write(f"\n## Next\n\n{next_steps}\n")
     return path
 
 

@@ -6,6 +6,11 @@ def test_capture_and_load(tmp_path):
         str(tmp_path), "EXP1", seeds=[0, 1], baseline="SASRec",
         config={"lr": 0.001, "batch": 256},
         commit="abc1234", gpu="NVIDIA RTX 4090, 24GB",
+        goal="Test whether gating improves recall@10",
+        changes="Added gating module vs SASRec baseline",
+        result="recall@10 0.42 vs baseline 0.40",
+        conclusion="Modest improvement, needs more seeds",
+        next_steps="Run with 2 more seeds for a strong claim",
     )
     assert path.endswith("experiments/EXP1/run.md")
     exp = load_experiment(str(tmp_path), "EXP1")
@@ -17,8 +22,25 @@ def test_capture_and_load(tmp_path):
 
 def test_capture_records_gpu_and_config(tmp_path):
     capture_run(str(tmp_path), "EXP2", seeds=[7], baseline=None,
-                config={"lr": 0.01}, commit="def5678", gpu="CPU-only")
+                config={"lr": 0.01}, commit="def5678", gpu="CPU-only",
+                goal="g", changes="c", result="r", conclusion="cc", next_steps="n")
     text = open(str(tmp_path) + "/experiments/EXP2/run.md").read()
     assert "def5678" in text
     assert "CPU-only" in text
     assert "lr" in text
+
+
+def test_capture_records_narrative_log(tmp_path):
+    capture_run(str(tmp_path), "EXP3", seeds=[0], baseline="SASRec",
+                config={"lr": 0.01}, commit="abc0000", gpu="CPU-only",
+                goal="Test the gating hypothesis",
+                changes="Swapped attention for gating",
+                result="recall@10 0.35, below baseline",
+                conclusion="Gating hurts recall here",
+                next_steps="Try gating only on long sequences")
+    text = open(str(tmp_path) + "/experiments/EXP3/run.md").read()
+    assert "## Goal" in text and "Test the gating hypothesis" in text
+    assert "## Changes" in text and "Swapped attention for gating" in text
+    assert "## Result" in text and "below baseline" in text
+    assert "## Conclusion" in text and "Gating hurts recall here" in text
+    assert "## Next" in text and "long sequences" in text

@@ -24,7 +24,16 @@ Execute the experiment plan, capturing every run reproducibly and recording its 
    This loop is about implementation correctness, not tuning for a better number — never keep
    iterating just because the result is negative; a clean negative run is `stop_clean`.
 3. Run with ≥2 seeds when a `strong` claim is intended.
-4. Capture each run with `rx_state.capture.capture_run(rx_dir, exp_id, seeds, baseline, config, commit=<git rev-parse HEAD>, gpu=<KB GPU string>)`.
+4. Capture each run with `rx_state.capture.capture_run(rx_dir, exp_id, seeds, baseline, config, commit=<git rev-parse HEAD>, gpu=<KB GPU string>, goal=..., changes=..., result=..., conclusion=..., next_steps=...)`.
+   The five narrative args are required, not optional — fill in all of them every run:
+   - `goal` — the hypothesis this specific run tests.
+   - `changes` — what differs from the baseline/previous run (params, code, data); plain
+     language, not an auto-diff.
+   - `result` — the observed metric(s), pre-statistics.
+   - `conclusion` — your immediate read of the run. This is informal and distinct from the
+     formal `positive|negative|inconclusive` outcome, which rx-analyze decides later from
+     rigorous stats — don't treat this as the final verdict.
+   - `next_steps` — the concrete next action or follow-up hypothesis.
 5. Write an `E<n>` evidence artifact per result via `rx_state.store.write_evidence`, setting `outcome` to `positive|negative|inconclusive` honestly.
 6. Advance `.rx/state.json` stage to `analyze`.
 
