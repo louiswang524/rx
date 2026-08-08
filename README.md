@@ -30,6 +30,8 @@ Invoke any stage by name ("use rx-plan to lock the metric for..."), or run `rx-p
 chain the whole thing, optionally with `--loop` so negative results feed the next hypothesis
 instead of getting discarded.
 
+![RX method overview: memory, ideation, execution, evidence, and writing lanes gated by certificates, locked plans, evidence records, and review feedback, with a bounded self-improvement loop](docs/images/method-overview.png)
+
 ## Why RX exists
 
 - **Nothing is stated as fact without evidence.** Claims carry a strength
