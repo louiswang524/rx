@@ -58,6 +58,17 @@ While `state.get("autonomous")` is true:
   state.get("max_hours"))`. If true, treat it exactly like a loop's `stop_budget` outcome: stop
   iterating, write up the best result so far, proceed to `write`/`review`, then stop the
   pipeline.
+- **Re-scoop check.** At each research-loop iteration (see `## Loop` below), after computing the
+  new `loop["iteration"]`, call `rx_state.scoop.scoop_recheck_due(loop["iteration"])` (fires every
+  3rd iteration). If due: fetch `rx_state.scoop.known_paper_keys(rx_dir)`, run a fresh arXiv /
+  Semantic Scholar search against the locked question's primary claim, and compare hits against
+  those known keys plus `.rx/grill/shared-understanding.md`'s `collision_threats`. Write the
+  result with `rx_state.scoop.write_scoop_check(rx_dir, ScoopCheck(...))` — `verdict =
+  "potential_collision"` only for a genuinely close match (same task + same metric direction), not
+  a loose keyword hit. **Never halt the loop on this alone** — log it via
+  `rx_state.store.append_autonomy_log` and keep iterating; `rx-review` surfaces any
+  `potential_collision` verdicts in the final writeup (see its SKILL.md) so a human reviews the
+  risk rather than the loop reacting to a possible false positive.
 - **Audit trail.** After every stage transition and every irreversible action (self-grill
   completed, plan locked, blog commit pushed + hash, cleanup paths deleted + bytes freed, loop
   stop reason), call `rx_state.store.append_autonomy_log(rx_dir, "<one-line description>")`.
