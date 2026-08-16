@@ -154,6 +154,13 @@ Also re-check the abstract specifically against `references/abstract.md`'s numer
 (rule 9) any time a new result is added to it — abstracts accrete one more number per pass
 until they read like a table; the cap has to be re-applied, not assumed.
 
+In the same pass, run `rx_state.aitells.scan_ai_tells` over each section's prose (see
+`references/tone.md`, "AI-tell hygiene"). Rewrite any hard-banned cliché on sight; for an
+overused-transition finding, replace most (not all) occurrences with a different connective or
+just cut the transition and let the sentence stand on its own. Spot-check Introduction/Method/
+Conclusion with `rx_state.aitells.low_burstiness` and break up a run of same-length sentences if
+it returns `True`.
+
 ## Blog
 Prepare `blog/<slug>.md` with static-site front-matter and a link to the arXiv + code. Publishing to
 the external personal GitHub blog is outward-facing and normally requires confirmation: present the
