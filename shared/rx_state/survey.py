@@ -4,6 +4,9 @@ from dataclasses import dataclass, field
 import yaml
 
 
+SOURCE_KINDS = ("paper", "library", "tutorial", "docs")
+
+
 @dataclass
 class PaperNote:
     key: str
@@ -13,13 +16,19 @@ class PaperNote:
     claim: str = ""
     hop: int = 1
     via: list[str] = field(default_factory=list)
+    # "paper" (default, citable literature) | "library" | "tutorial" | "docs" -- a non-paper
+    # baseline (vendor library, code tutorial, reference docs) grounded by a repo/doc URL
+    # instead of a citation. hop-2 citation-graph search only applies to source_kind="paper"
+    # notes -- a library/tutorial has no related-work section to walk.
+    source_kind: str = "paper"
 
 
 def write_note(rx_dir: str, note: PaperNote) -> str:
     target = os.path.join(rx_dir, "notes", "papers")
     os.makedirs(target, exist_ok=True)
     front = {"key": note.key, "title": note.title, "method": note.method,
-             "baselines": note.baselines, "hop": note.hop, "via": note.via}
+             "baselines": note.baselines, "hop": note.hop, "via": note.via,
+             "source_kind": note.source_kind}
     path = os.path.join(target, f"{note.key}.md")
     with open(path, "w", encoding="utf-8") as f:
         f.write("---\n")
@@ -38,7 +47,8 @@ def read_note(path: str) -> PaperNote:
                      baselines=front.get("baselines") or [],
                      claim=body.strip(),
                      hop=front.get("hop") or 1,
-                     via=front.get("via") or [])
+                     via=front.get("via") or [],
+                     source_kind=front.get("source_kind") or "paper")
 
 
 def collect_baselines(notes: list[PaperNote]) -> list[str]:

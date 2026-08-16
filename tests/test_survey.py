@@ -8,6 +8,27 @@ def test_note_roundtrip(tmp_path):
     assert back == n
 
 
+def test_note_defaults_to_paper_source_kind():
+    assert PaperNote(key="a", title="A").source_kind == "paper"
+
+
+def test_library_source_kind_roundtrip(tmp_path):
+    n = PaperNote(key="flashinfer_addrmsnorm", title="FlashInfer fused_add_rmsnorm",
+                  claim="standard fused kernel baseline", source_kind="library")
+    back = read_note(write_note(str(tmp_path), n))
+    assert back == n
+    assert back.source_kind == "library"
+
+
+def test_legacy_note_without_source_kind_defaults_paper(tmp_path):
+    path = tmp_path / "legacy.md"
+    path.write_text(
+        "---\nkey: legacy\ntitle: Legacy\nmethod: x\nbaselines: []\n---\n\nclaim text\n",
+        encoding="utf-8",
+    )
+    assert read_note(str(path)).source_kind == "paper"
+
+
 def test_note_defaults_to_hop_one_no_via():
     n = PaperNote(key="a", title="A")
     assert n.hop == 1

@@ -45,20 +45,40 @@ Read `skills/_shared/references/conference-outcome-lessons.md`. For survey:
    open-gap line), but set `hop=2` and `via=[<hop-1 key(s) that cited it>]` so provenance is
    traceable.
 
+### Non-paper baselines (engineering-optimization mode)
+When the real baseline for the question is a vendor library, a code tutorial, or reference
+docs rather than a citable paper (common in `rx-ideate --engineering` mode — see its
+SKILL.md), don't force it into the paper template. Write it as a normal `PaperNote` via
+`rx_state.survey.write_note`, but set `source_kind` to `"library"`, `"tutorial"`, or
+`"docs"` (default is `"paper"`). For these notes:
+- Cite the repo/documentation URL in the claim body in place of a venue/citation.
+- **Skip hop 2 for it** — a library or tutorial has no related-work section to walk; hop-2
+  citation-graph search only makes sense for `source_kind="paper"` notes.
+- Don't treat it as a "closest neighbor / collision threat" for `rx-grill` — that concept is
+  about novelty collision with other researchers' work, which doesn't apply to "we're both
+  using the same well-known library technique." It's simply the baseline to beat.
+- If the question has *no* paper-shaped neighbors at all (pure engineering optimization
+  against a library/tutorial baseline), it's fine for the whole note set to be
+  non-`"paper"` — don't manufacture a paper citation to fill the slot. Note this explicitly
+  in `writings/survey-neighborhood.md` (step 7) rather than leaving it implicit.
+
 ### Wrap-up
 6. Compute the candidate baseline set with `rx_state.survey.collect_baselines(notes)` over
-   **all** notes (both hops) — this is what `rx-plan` compares against. Explicitly flag the
-   single **closest neighbor** (strongest collision threat, normally a hop-1 note) for
-   `rx-grill`.
+   **all** notes (both hops, and any non-paper notes) — this is what `rx-plan` compares
+   against. Explicitly flag the single **closest neighbor** (strongest collision threat,
+   normally a hop-1 `source_kind="paper"` note) for `rx-grill` — skip this flag entirely if
+   every note is non-paper (see above).
 7. Optionally write `writings/survey-neighborhood.md` summarizing: method-lineage (who
    refines whom), additive vs subtractive gaps, which baselines are mandatory, and a **recent
    trend** subsection drawn from the hop-2 notes (what the field has moved toward since the
-   hop-1 papers).
+   hop-1 papers). Non-paper notes belong in a **baselines** subsection instead, not folded
+   into the method-lineage narrative.
 8. Advance `.rx/state.json` stage to `grill` (next: `rx-grill` alignment, then `rx-plan`).
 
 ## Outputs
 - `.rx/notes/papers/<key>.md` (structured per-paper notes + open-gap; `hop`/`via` mark
-  hop-1 topic-search papers vs hop-2 citation-graph papers)
-- A de-duplicated baseline set for `rx-plan`, drawn from both hops
-- Closest-neighbor / collision-threat signal for `rx-grill`
+  hop-1 topic-search papers vs hop-2 citation-graph papers; `source_kind` marks paper vs
+  non-paper library/tutorial/docs baselines)
+- A de-duplicated baseline set for `rx-plan`, drawn from all notes
+- Closest-neighbor / collision-threat signal for `rx-grill` (paper notes only)
 - Updated `.rx/state.json` (stage = grill)
