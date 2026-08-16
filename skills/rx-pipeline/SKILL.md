@@ -27,9 +27,41 @@ Stage order:
 ideate → survey → grill → plan → experiment → analyze → write → review → done
 ```
 
-`rx-grill` is interactive: do **not** auto-skip it on the first pass or after a replan survey.
+`rx-grill` is interactive: do **not** auto-skip it on the first pass or after a replan survey,
+**unless running in autonomous mode** (see below) — human-confirmed grill remains the default.
 It must reach a human-confirmed shared understanding (`.rx/grill/shared-understanding.md`)
 before `rx-plan` may lock the evaluation contract.
+
+## Autonomous (full-access) mode
+Triggered by `rx-pipeline --autonomous [--max-hours N]` (default `N=24`). On first invocation,
+set in `.rx/state.json`: `autonomous: true`, `autonomous_started_at:
+datetime.now(timezone.utc).isoformat()` (an offset-bearing, timezone-aware ISO-8601 timestamp),
+`max_hours: N`. Entry is unchanged otherwise (`rx-ideate`/`rx-spinoff` still bootstraps a
+brand-new project first).
+
+If `state.get("autonomous")` is true but `max_hours` is missing or null (e.g. an older run, or a
+project that predates this field), treat it as the default (`24`) and write it back into
+`state.json` immediately — don't leave it unresolved for later deadline checks.
+
+While `state.get("autonomous")` is true:
+- **Grill is skipped, not automated.** On reaching the `grill` stage, do not invoke interactive
+  `rx-grill`. Instead reason through the same fields yourself (primary question, novelty gap,
+  metric intent, baselines, falsifiers, scope cuts, collision threats, failure-mode checks) and
+  write them with `rx_state.grill.write_understanding`, setting `SharedUnderstanding.mode =
+  "self-grilled"` so the file is visibly distinguishable from a human-confirmed one. Advance
+  straight to `plan`. `rx-plan` performs an added self-critique step in this mode — see its
+  SKILL.md.
+- **No confirmation prompts.** `rx-write`'s blog push and the Cleanup pass's deletions proceed
+  without asking (see their sections below / their SKILL.md).
+- **Deadline check.** Before entering each stage, and at each research-loop and drafting-loop
+  iteration, call `rx_state.pipeline.deadline_exceeded(state.get("autonomous_started_at"),
+  state.get("max_hours"))`. If true, treat it exactly like a loop's `stop_budget` outcome: stop
+  iterating, write up the best result so far, proceed to `write`/`review`, then stop the
+  pipeline.
+- **Audit trail.** After every stage transition and every irreversible action (self-grill
+  completed, plan locked, blog commit pushed + hash, cleanup paths deleted + bytes freed, loop
+  stop reason), call `rx_state.store.append_autonomy_log(rx_dir, "<one-line description>")`.
+  This is a log only — it never blocks anything.
 
 ## Outputs
 - A completed run with `.rx/state.json` at `done`
@@ -73,15 +105,20 @@ The drafting loop only edits the paper; it never re-runs experiments or touches 
 ## Cleanup (optional)
 Once the drafting loop settles (`stop_clean`/`stop_budget`) — or immediately if the research
 `--loop` ended in `stop_no_improve`/`stop_budget` with no drafting to do — offer an optional
-cleanup pass. Never run it automatically, and never touch anything under `.rx/` (the
-traceability record; it's markdown, not the disk hog).
+cleanup pass. Never run it automatically outside autonomous mode, and never touch anything
+under `.rx/` (the traceability record; it's markdown, not the disk hog).
 1. Call `rx_state.cleanup.cleanup_candidates(project_dir, rx_dir)`. It finds
    `experiments/**/checkpoints/` dirs and training-log dirs (`wandb/`, `tensorboard/`,
    `lightning_logs/`, `logs/`), each sized and marked `protected` if it backs an experiment whose
    evidence feeds a `supported`/`strong` claim (i.e. still cited in the final paper).
 2. Show the report via `rx_state.cleanup.format_report` — only ever propose deleting the
    non-protected candidates (superseded/negative hypotheses from earlier loop iterations).
-3. Ask explicitly before deleting anything. On confirmation, call
-   `rx_state.cleanup.delete_candidates` with just the approved (non-protected) candidates.
-4. If the user declines, or there are no non-protected candidates, skip silently — this step
-   never blocks the pipeline from being considered done.
+3. If `state.get("autonomous")` is true, skip the confirmation and call
+   `rx_state.cleanup.delete_candidates` directly with the non-protected candidates, then log it
+   via `rx_state.store.append_autonomy_log(rx_dir, f"deleted cleanup paths: <paths>, freed
+   <bytes> bytes")` (or equivalent) — the same deleted-paths + bytes-freed content the
+   Audit-trail bullet above promises. Otherwise ask explicitly before deleting anything, and on
+   confirmation call `rx_state.cleanup.delete_candidates` with just the approved (non-protected)
+   candidates.
+4. If not autonomous and the user declines, or there are no non-protected candidates either
+   way, skip silently — this step never blocks the pipeline from being considered done.

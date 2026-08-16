@@ -12,14 +12,26 @@ field actually uses (from `rx-survey`).
 
 ## Steps
 1. Confirm `rx_state.grill.is_grilled(rx_dir)` — if not, stop and run `rx-grill` first
-   (`stage_blockers` will also block this stage).
+   (`stage_blockers` will also block this stage). Exception: in autonomous mode
+   (`state.get("autonomous")` is true), `rx-pipeline` writes a self-grilled understanding before
+   handing off to this skill, so this will already be satisfied.
 2. Read `.rx/grill/shared-understanding.md` (`rx_state.grill.read_understanding`),
    `.rx/questions/`, and the survey baseline set (`rx_state.survey.collect_baselines`).
 3. Decide the primary `metric`, whether higher is better, the `comparison_family`, and a `seed_policy` (≥2 for any intended `strong` claim) — these must match the grilled agreement (or explicitly note intentional overrides after re-grilling).
-4. Write the lock via `rx_state.planlock.write_lock` — this is blocker-first: `rx-experiment` must check `is_locked` and refuse to run until the lock exists.
-5. Estimate cost in machine-time (iterations / compute / tokens), NOT human-days — Claude Code implements experiments fast, so favor more iterations.
-6. Advance `.rx/state.json` stage to `experiment`.
+4. **Autonomous mode only**, triggered by the understanding's own provenance
+   (`understanding.mode == "self-grilled"`) — not the run's live `autonomous` flag, since a
+   mid-pipeline autonomous entry onto a project with a pre-existing human-confirmed understanding
+   should not re-trigger this, and a later non-autonomous replan on a self-grilled project should:
+   run a devil's-advocate self-critique pass over the metric, comparison family, and
+   baselines chosen in step 3 — the kind of flawed-assumption check a human grill session would
+   normally catch (is the metric gameable, is a baseline missing, is the comparison family
+   unfair). Write findings to `.rx/plan/self-critique.md`; revise the step-3 decisions if the
+   critique surfaces a real problem before locking.
+5. Write the lock via `rx_state.planlock.write_lock` — this is blocker-first: `rx-experiment` must check `is_locked` and refuse to run until the lock exists.
+6. Estimate cost in machine-time (iterations / compute / tokens), NOT human-days — Claude Code implements experiments fast, so favor more iterations.
+7. Advance `.rx/state.json` stage to `experiment`.
 
 ## Outputs
 - `.rx/plan/lock.md` (metric, comparison family, seed policy, baselines)
+- `.rx/plan/self-critique.md` (autonomous mode only)
 - Updated `.rx/state.json` (stage = experiment)

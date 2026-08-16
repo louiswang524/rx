@@ -1,6 +1,6 @@
 from rx_state.store import default_state
 from rx_state.pipeline import (next_stage, advance_stage, stage_blockers, loop_step,
-                               draft_loop_step, loop_resume_stage, experiment_loop_step)
+                               draft_loop_step, loop_resume_stage, experiment_loop_step, deadline_exceeded)
 from rx_state.planlock import PlanLock, write_lock
 
 
@@ -182,3 +182,50 @@ def test_draft_loop_reject_then_accept_one_revise_cycle():
     dl, a2 = draft_loop_step(dl, "accept")
     assert a2 == "stop_clean"
     assert dl["iteration"] == 2
+
+
+def test_deadline_not_exceeded_within_budget():
+    assert deadline_exceeded(
+        "2026-08-15T00:00:00+00:00", max_hours=24,
+        now="2026-08-15T10:00:00+00:00",
+    ) is False
+
+
+def test_deadline_exceeded_past_budget():
+    assert deadline_exceeded(
+        "2026-08-15T00:00:00+00:00", max_hours=24,
+        now="2026-08-16T01:00:00+00:00",
+    ) is True
+
+
+def test_deadline_exceeded_at_exact_boundary():
+    assert deadline_exceeded(
+        "2026-08-15T00:00:00+00:00", max_hours=24,
+        now="2026-08-16T00:00:00+00:00",
+    ) is True
+
+
+def test_deadline_not_exceeded_when_max_hours_unset():
+    assert deadline_exceeded(None, None, now="2026-08-16T00:00:00+00:00") is False
+    assert deadline_exceeded("2026-08-15T00:00:00+00:00", None,
+                             now="2026-08-16T00:00:00+00:00") is False
+
+
+def test_deadline_exceeded_naive_started_at_does_not_raise():
+    # production call is two-arg (now=None), which hits datetime.now(timezone.utc) —
+    # an aware datetime. A naive started_at (no UTC offset) must not raise TypeError
+    # when compared against it.
+    result = deadline_exceeded("2026-08-15T00:00:00", max_hours=24)
+    assert isinstance(result, bool)
+
+
+def test_deadline_exceeded_naive_started_at_and_naive_now_are_treated_as_utc():
+    # both sides naive: deterministic, exact-boundary case (24h later, at limit).
+    assert deadline_exceeded(
+        "2026-08-15T00:00:00", max_hours=24,
+        now="2026-08-16T00:00:00",
+    ) is True
+    assert deadline_exceeded(
+        "2026-08-15T00:00:00", max_hours=24,
+        now="2026-08-15T10:00:00",
+    ) is False

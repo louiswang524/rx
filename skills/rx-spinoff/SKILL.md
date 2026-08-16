@@ -56,7 +56,9 @@ random home-directory folder.
      carrying its gap; put the novelty delta in the question body.
    - Critique → `.rx/notes/spinoff-<key>.md` (plain markdown; no new `rx_state` code).
 6. **Auto-continue.** Set `state["stage"] = "survey"` and save via `rx_state.store.save_state`, then
-   invoke `rx-pipeline`. It flows survey → **grill** → plan and stops at the **plan lock** —
+   invoke `rx-pipeline`. It flows survey → **grill** → plan and stops at the **plan lock**
+   (unless running in autonomous mode, in which case the pipeline self-grills and continues past
+   the lock automatically — see `rx-pipeline`'s Autonomous (full-access) mode section) —
    `rx-grill` must reach a human-confirmed shared understanding before `rx-plan` locks metrics,
    and `rx_state.pipeline.stage_blockers` blocks `experiment` until that lock exists — so no
    compute is spent before you approve. State the stop explicitly and how to resume.

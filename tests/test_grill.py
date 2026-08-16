@@ -78,3 +78,21 @@ def test_legacy_understanding_without_new_fields_still_loads(tmp_path):
     assert loaded.diff_mechanism == ""
     assert loaded.collision_threats == []
     assert "Legacy summary" in loaded.summary
+
+
+def test_self_grilled_mode_roundtrips(tmp_path):
+    rx = str(tmp_path)
+    write_understanding(rx, SharedUnderstanding(
+        primary_question_id="Q1",
+        summary="Self-grilled understanding for Q1.",
+        mode="self-grilled",
+    ))
+    loaded = read_understanding(rx)
+    assert loaded.mode == "self-grilled"
+
+
+def test_legacy_understanding_without_mode_defaults_empty(tmp_path):
+    rx = str(tmp_path)
+    write_understanding(rx, SharedUnderstanding(primary_question_id="Q1", summary="s"))
+    loaded = read_understanding(rx)
+    assert loaded.mode == ""

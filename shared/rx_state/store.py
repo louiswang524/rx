@@ -2,6 +2,7 @@ import glob
 import json
 import os
 import yaml
+from datetime import datetime, timezone
 from rx_state.schema import Claim, Question, Evidence
 
 
@@ -10,6 +11,9 @@ def default_state(project: str, kb_path: str) -> dict:
         "project": project,
         "kb_path": kb_path,
         "stage": "ideate",
+        "autonomous": False,
+        "autonomous_started_at": None,
+        "max_hours": None,
         "loop": {
             "enabled": False,
             "iteration": 0,
@@ -38,6 +42,15 @@ def save_state(rx_dir: str, state: dict) -> None:
     os.makedirs(rx_dir, exist_ok=True)
     with open(os.path.join(rx_dir, "state.json"), "w", encoding="utf-8") as f:
         json.dump(state, f, indent=2)
+
+
+def append_autonomy_log(rx_dir: str, line: str, now: str | None = None) -> str:
+    os.makedirs(rx_dir, exist_ok=True)
+    ts = now or datetime.now(timezone.utc).isoformat()
+    path = os.path.join(rx_dir, "autonomy-log.md")
+    with open(path, "a", encoding="utf-8") as f:
+        f.write(f"- {ts} {line}\n")
+    return path
 
 
 def write_claim(rx_dir: str, claim: Claim) -> str:
