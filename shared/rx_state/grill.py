@@ -29,6 +29,7 @@ class SharedUnderstanding:
     evidence_expectations: list[str] = field(default_factory=list)
     failure_mode_checks: list[str] = field(default_factory=list)
     summary: str = ""
+    mode: str = ""  # "" for human-grilled, "self-grilled" when written autonomously
 
 
 def _path(rx_dir: str) -> str:
@@ -53,6 +54,7 @@ def write_understanding(rx_dir: str, understanding: SharedUnderstanding) -> str:
         "collision_threats": understanding.collision_threats,
         "evidence_expectations": understanding.evidence_expectations,
         "failure_mode_checks": understanding.failure_mode_checks,
+        "mode": understanding.mode,
     }
     path = _path(rx_dir)
     body = understanding.summary.strip() or (
@@ -89,6 +91,7 @@ def read_understanding(rx_dir: str) -> SharedUnderstanding:
         collision_threats=list(front.get("collision_threats") or []),
         evidence_expectations=list(front.get("evidence_expectations") or []),
         failure_mode_checks=list(front.get("failure_mode_checks") or []),
+        mode=front.get("mode") or "",
         summary=(body or "").strip(),
     )
 
