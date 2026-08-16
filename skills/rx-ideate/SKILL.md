@@ -62,6 +62,18 @@ Before drafting questions, read
    **When re-entering from a `rx-pipeline --loop continue`** (a prior hypothesis's
    evidence came back negative), read that `E<n>` and root the new hypothesis in what
    it ruled out — don't just generate an unrelated idea.
+
+   **Tournament mode** (`rx-ideate --tournament [N]`, default `N=4`): instead of one
+   composed set, draft `N` fully **independent** candidates, each rooted in a *different*
+   bottleneck from step 3 (not variations on one bottleneck — the point is diverse
+   competing framings). Score each with `rx_state.tournament.CandidateScore(question_id,
+   novelty, feasibility, falsifiability, evidence_inspectability)` — each rubric axis is
+   an integer 0–3, judged the same way you'd judge any candidate under steps 4–6 (novelty
+   delta strength, KB/hardware fit, whether a falsifier is nameable, whether the evidence
+   expectation is genuinely inspectable). Persist the field with
+   `rx_state.tournament.write_tournament(rx_dir, scores, winner_id)` for the audit trail,
+   then carry only the winning candidate through steps 5–7 below (do not write `Q<n>`
+   artifacts for the runners-up — the tournament record already preserves why they lost).
 5. **Anti novel-but-empty gate.** Drop or rewrite any candidate that cannot name both a
    falsifier and an evidence expectation, or whose only delta is domain transfer with
    the same mechanism+insight.
@@ -77,4 +89,5 @@ Before drafting questions, read
 - Project scaffold under `<research-root>/<topic>/<project-name>/` with
   `code/`, `writings/`, `experiments/`, `publication/{arxiv,anon}/`, and `.rx/`
 - `.rx/questions/Q<n>.md` (one per question, with gap + novelty delta + falsifier)
+- `.rx/ideate/tournament.md` (tournament mode only — ranked candidates + rationale)
 - Updated `.rx/state.json` (stage = survey)

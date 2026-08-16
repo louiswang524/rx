@@ -1,5 +1,15 @@
+import os
+
 import pytest
-from rx_state.review import ReviewFinding, recommend, repro_checklist, write_round, read_round, latest_round
+from rx_state.review import (
+    ReviewFinding,
+    recommend,
+    repro_checklist,
+    write_round,
+    read_round,
+    latest_round,
+    extract_figure_paths,
+)
 
 
 def test_finding_validates_severity():
@@ -41,3 +51,33 @@ def test_latest_round_returns_highest_and_zero_when_none(tmp_path):
     write_round(rx, 1, [ReviewFinding("R1", "minor", "x")])
     write_round(rx, 2, [ReviewFinding("R1", "major", "y")])
     assert latest_round(rx) == 2
+
+
+def test_extract_figure_paths_finds_includegraphics():
+    tex = r"""
+    \begin{figure}
+    \includegraphics[width=\linewidth]{figures/pipeline.pdf}
+    \end{figure}
+    \includegraphics{results/ablation}
+    """
+    assert extract_figure_paths(tex) == ["figures/pipeline.pdf", "results/ablation"]
+
+
+def test_extract_figure_paths_empty_when_none():
+    assert extract_figure_paths("no figures here") == []
+
+
+def test_extract_figure_paths_resolves_missing_extension(tmp_path):
+    base = str(tmp_path)
+    os.makedirs(os.path.join(base, "results"))
+    open(os.path.join(base, "results", "ablation.png"), "w").close()
+    tex = r"\includegraphics{results/ablation}"
+    resolved = extract_figure_paths(tex, base_dir=base)
+    assert resolved == [os.path.join(base, "results", "ablation.png")]
+
+
+def test_extract_figure_paths_leaves_unresolvable_path_as_is(tmp_path):
+    base = str(tmp_path)
+    tex = r"\includegraphics{results/missing}"
+    resolved = extract_figure_paths(tex, base_dir=base)
+    assert resolved == [os.path.join(base, "results/missing")]

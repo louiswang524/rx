@@ -16,12 +16,22 @@ check reproducibility, and prepare rebuttal material.
    them as a `major` finding — a possible scoop needs a human's eyes on it before submission, even
    though the automated check didn't halt the research loop. Skip silently if the list is empty
    or the project never ran in autonomous mode.
-2. Assemble the panel: several independent reviewers with field-specific expertise + a devil's advocate. If `rx_state.style.read_style_guide(rx_dir)` returns a guide, add a style-conformance reviewer to the panel; if it returns `None`, skip this role (not a blocker).
-3. Each reviewer files `ReviewFinding`s (`major|minor|praise`) against the draft's claims, baselines, and ablations. The style-conformance reviewer instead compares the draft against the style guide's structure/tone/wording conventions and files deviations as `minor` findings.
-4. Compute the panel recommendation with `rx_state.review.recommend` (any major → reject).
-5. Persist the round: `rx_state.review.write_round(rx_dir, n, findings)` → `.rx/reviews/round-<n>.md`. The drafting loop reads this file to drive `rx-write --mode=revise`.
-6. Run `rx_state.review.repro_checklist(has_code, has_seeds, has_configs)`; any missing item must be fixed before submission.
-7. Draft rebuttal responses to the major/minor findings.
+2. **Figure check.** Call `rx_state.review.extract_figure_paths(tex, base_dir=publication/arxiv)`
+   on `publication/arxiv/main.tex` to resolve every `\includegraphics` target to a file path.
+   For each resolved path that exists, **read the image directly** (you're multimodal — open
+   the file, don't just infer from the caption) and check: are axis labels/legend/tick text
+   legible at print size, does the figure actually show what its caption claims, is the
+   comparison-context baseline present if the caption implies one. File any problem as a normal
+   `ReviewFinding(reviewer="figure-check", severity=..., comment=...)` in the same findings
+   list the panel uses below, so `recommend()` folds it into the panel verdict — an illegible
+   headline figure is `major`, a minor labeling nit is `minor`. Skip silently if no figures are
+   referenced yet or none of the resolved paths exist (early draft).
+3. Assemble the panel: several independent reviewers with field-specific expertise + a devil's advocate. If `rx_state.style.read_style_guide(rx_dir)` returns a guide, add a style-conformance reviewer to the panel; if it returns `None`, skip this role (not a blocker).
+4. Each reviewer files `ReviewFinding`s (`major|minor|praise`) against the draft's claims, baselines, and ablations. The style-conformance reviewer instead compares the draft against the style guide's structure/tone/wording conventions and files deviations as `minor` findings.
+5. Compute the panel recommendation with `rx_state.review.recommend` over **all** findings, including the figure-check and scoop-check ones (any major → reject).
+6. Persist the round: `rx_state.review.write_round(rx_dir, n, findings)` → `.rx/reviews/round-<n>.md`. The drafting loop reads this file to drive `rx-write --mode=revise`.
+7. Run `rx_state.review.repro_checklist(has_code, has_seeds, has_configs)`; any missing item must be fixed before submission.
+8. Draft rebuttal responses to the major/minor findings.
 
 ## Outputs
 - A reviewer report (findings + panel recommendation)

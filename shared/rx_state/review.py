@@ -1,8 +1,10 @@
 import glob
 import os
+import re
 from dataclasses import dataclass
 
 SEVERITIES = ("major", "minor", "praise")
+_INCLUDEGRAPHICS_RE = re.compile(r"\\includegraphics(?:\[[^\]]*\])?\{([^}]+)\}")
 
 
 @dataclass
@@ -34,6 +36,28 @@ def repro_checklist(has_code: bool, has_seeds: bool, has_configs: bool) -> list[
     if not has_configs:
         missing.append("configs")
     return missing
+
+
+def extract_figure_paths(tex: str, base_dir: str | None = None) -> list[str]:
+    """Pull \\includegraphics targets out of a rendered .tex source.
+
+    If base_dir is given, each path is resolved relative to it and, when the literal
+    path doesn't exist (LaTeX allows omitting the extension), the first of
+    .pdf/.png/.jpg/.jpeg that does exist is substituted.
+    """
+    paths = _INCLUDEGRAPHICS_RE.findall(tex)
+    if base_dir is None:
+        return paths
+    resolved = []
+    for p in paths:
+        candidate = os.path.join(base_dir, p)
+        if not os.path.exists(candidate) and "." not in os.path.basename(p):
+            for ext in (".pdf", ".png", ".jpg", ".jpeg"):
+                if os.path.exists(candidate + ext):
+                    candidate = candidate + ext
+                    break
+        resolved.append(candidate)
+    return resolved
 
 
 def write_round(rx_dir: str, n: int, findings: list[ReviewFinding]) -> str:
