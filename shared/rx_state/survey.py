@@ -11,13 +11,15 @@ class PaperNote:
     method: str = ""
     baselines: list[str] = field(default_factory=list)
     claim: str = ""
+    hop: int = 1
+    via: list[str] = field(default_factory=list)
 
 
 def write_note(rx_dir: str, note: PaperNote) -> str:
     target = os.path.join(rx_dir, "notes", "papers")
     os.makedirs(target, exist_ok=True)
     front = {"key": note.key, "title": note.title, "method": note.method,
-             "baselines": note.baselines}
+             "baselines": note.baselines, "hop": note.hop, "via": note.via}
     path = os.path.join(target, f"{note.key}.md")
     with open(path, "w", encoding="utf-8") as f:
         f.write("---\n")
@@ -34,7 +36,9 @@ def read_note(path: str) -> PaperNote:
     return PaperNote(key=front["key"], title=front["title"],
                      method=front.get("method") or "",
                      baselines=front.get("baselines") or [],
-                     claim=body.strip())
+                     claim=body.strip(),
+                     hop=front.get("hop") or 1,
+                     via=front.get("via") or [])
 
 
 def collect_baselines(notes: list[PaperNote]) -> list[str]:

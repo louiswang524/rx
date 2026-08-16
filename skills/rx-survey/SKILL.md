@@ -21,6 +21,8 @@ Read `skills/_shared/references/conference-outcome-lessons.md`. For survey:
 4. Never hide the **strongest / closest** competitor.
 
 ## Steps
+
+### Hop 1 — topic search
 1. Build a reading queue for the question(s) from `.rx/questions/`. Include:
    - papers named in each question's novelty delta,
    - recent same-task leaves (arXiv / Semantic Scholar / OpenReview when useful),
@@ -28,19 +30,35 @@ Read `skills/_shared/references/conference-outcome-lessons.md`. For survey:
 2. For each paper, fetch metadata (arXiv / Semantic Scholar) and extract method, baselines,
    and its headline claim. For the closest neighbors, also fetch full text when open-access
    and note the method mechanism in one sentence.
-3. Write each as a `PaperNote` via `rx_state.survey.write_note` under `.rx/notes/papers/`.
-   In the note body (beyond structured fields), add a short **open-gap** line: what this
-   paper still does not solve that our `Q<n>` targets. Mark unverifiable citations
+3. Write each as a `PaperNote` via `rx_state.survey.write_note` under `.rx/notes/papers/`
+   with `hop=1`. In the note body (beyond structured fields), add a short **open-gap** line:
+   what this paper still does not solve that our `Q<n>` targets. Mark unverifiable citations
    `[CITATION NEEDED]`.
-4. Compute the candidate baseline set with `rx_state.survey.collect_baselines(notes)` — this
-   is what `rx-plan` compares against. Explicitly flag the single **closest neighbor**
-   (strongest collision threat) for `rx-grill`.
-5. Optionally write `writings/survey-neighborhood.md` summarizing: method-lineage (who
-   refines whom), additive vs subtractive gaps, and which baselines are mandatory.
-6. Advance `.rx/state.json` stage to `grill` (next: `rx-grill` alignment, then `rx-plan`).
+
+### Hop 2 — citation-graph search (recent-trend pass)
+4. For each of the 3–5 closest hop-1 papers (the ones that got full-text treatment in step 2),
+   read their related-work / references section and pick the **2–3 most relevant** citations:
+   same task or metric, not already covered by a hop-1 note, preferring the most recent.
+   Cap the total across all hop-1 papers at **~8 hop-2 papers** — this pass is for surfacing
+   the current trend, not exhaustive citation-chasing; stop once it stops adding new signal.
+5. Fetch and write each as a full `PaperNote` exactly like hop-1 (method, baselines, claim,
+   open-gap line), but set `hop=2` and `via=[<hop-1 key(s) that cited it>]` so provenance is
+   traceable.
+
+### Wrap-up
+6. Compute the candidate baseline set with `rx_state.survey.collect_baselines(notes)` over
+   **all** notes (both hops) — this is what `rx-plan` compares against. Explicitly flag the
+   single **closest neighbor** (strongest collision threat, normally a hop-1 note) for
+   `rx-grill`.
+7. Optionally write `writings/survey-neighborhood.md` summarizing: method-lineage (who
+   refines whom), additive vs subtractive gaps, which baselines are mandatory, and a **recent
+   trend** subsection drawn from the hop-2 notes (what the field has moved toward since the
+   hop-1 papers).
+8. Advance `.rx/state.json` stage to `grill` (next: `rx-grill` alignment, then `rx-plan`).
 
 ## Outputs
-- `.rx/notes/papers/<key>.md` (structured per-paper notes + open-gap)
-- A de-duplicated baseline set for `rx-plan`
+- `.rx/notes/papers/<key>.md` (structured per-paper notes + open-gap; `hop`/`via` mark
+  hop-1 topic-search papers vs hop-2 citation-graph papers)
+- A de-duplicated baseline set for `rx-plan`, drawn from both hops
 - Closest-neighbor / collision-threat signal for `rx-grill`
 - Updated `.rx/state.json` (stage = grill)
