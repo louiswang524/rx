@@ -1,7 +1,7 @@
 import os
 from rx_state.schema import Claim
 from rx_state.store import (
-    default_state, load_state, save_state, write_claim, read_claim,
+    default_state, load_state, save_state, write_claim, read_claim, append_autonomy_log,
 )
 
 
@@ -46,3 +46,29 @@ def test_claim_roundtrip_none_question(tmp_path):
 def test_default_state_has_draft_loop():
     st = default_state("p", "/kb")
     assert st["draft_loop"] == {"iteration": 0, "max_draft_iters": 5}
+
+
+def test_default_state_has_autonomous_fields():
+    st = default_state("p", "/kb")
+    assert st["autonomous"] is False
+    assert st["autonomous_started_at"] is None
+    assert st["max_hours"] is None
+
+
+def test_append_autonomy_log_creates_file_with_timestamped_line(tmp_path):
+    rx_dir = str(tmp_path)
+    path = append_autonomy_log(rx_dir, "self-grill completed", now="2026-08-15T00:00:00+00:00")
+    assert path == os.path.join(rx_dir, "autonomy-log.md")
+    content = open(path, encoding="utf-8").read()
+    assert content == "- 2026-08-15T00:00:00+00:00 self-grill completed\n"
+
+
+def test_append_autonomy_log_appends_multiple_lines(tmp_path):
+    rx_dir = str(tmp_path)
+    append_autonomy_log(rx_dir, "first", now="2026-08-15T00:00:00+00:00")
+    append_autonomy_log(rx_dir, "second", now="2026-08-15T01:00:00+00:00")
+    lines = open(os.path.join(rx_dir, "autonomy-log.md"), encoding="utf-8").read().splitlines()
+    assert lines == [
+        "- 2026-08-15T00:00:00+00:00 first",
+        "- 2026-08-15T01:00:00+00:00 second",
+    ]
