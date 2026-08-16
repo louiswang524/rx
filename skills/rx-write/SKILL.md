@@ -158,6 +158,6 @@ until they read like a table; the cap has to be re-applied, not assumed.
 Prepare `blog/<slug>.md` with static-site front-matter and a link to the arXiv + code. Publishing to
 the external personal GitHub blog is outward-facing and normally requires confirmation: present the
 prepared commit/PR and ask the user before pushing. **Exception — autonomous mode:** if
-`state["autonomous"]` is true, push without asking, then log it via
+`state.get("autonomous")` is true, push without asking, then log it via
 `rx_state.store.append_autonomy_log(rx_dir, f"pushed blog commit <hash>")`.
 

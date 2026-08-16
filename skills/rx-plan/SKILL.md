@@ -13,13 +13,16 @@ field actually uses (from `rx-survey`).
 ## Steps
 1. Confirm `rx_state.grill.is_grilled(rx_dir)` — if not, stop and run `rx-grill` first
    (`stage_blockers` will also block this stage). Exception: in autonomous mode
-   (`state["autonomous"]` is true), `rx-pipeline` writes a self-grilled understanding before
+   (`state.get("autonomous")` is true), `rx-pipeline` writes a self-grilled understanding before
    handing off to this skill, so this will already be satisfied.
 2. Read `.rx/grill/shared-understanding.md` (`rx_state.grill.read_understanding`),
    `.rx/questions/`, and the survey baseline set (`rx_state.survey.collect_baselines`).
 3. Decide the primary `metric`, whether higher is better, the `comparison_family`, and a `seed_policy` (≥2 for any intended `strong` claim) — these must match the grilled agreement (or explicitly note intentional overrides after re-grilling).
-4. **Autonomous mode only** (`understanding.mode == "self-grilled"`, i.e. `state["autonomous"]`
-   is true): run a devil's-advocate self-critique pass over the metric, comparison family, and
+4. **Autonomous mode only**, triggered by the understanding's own provenance
+   (`understanding.mode == "self-grilled"`) — not the run's live `autonomous` flag, since a
+   mid-pipeline autonomous entry onto a project with a pre-existing human-confirmed understanding
+   should not re-trigger this, and a later non-autonomous replan on a self-grilled project should:
+   run a devil's-advocate self-critique pass over the metric, comparison family, and
    baselines chosen in step 3 — the kind of flawed-assumption check a human grill session would
    normally catch (is the metric gameable, is a baseline missing, is the comparison family
    unfair). Write findings to `.rx/plan/self-critique.md`; revise the step-3 decisions if the

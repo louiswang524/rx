@@ -16,11 +16,15 @@ def advance_stage(state: dict) -> dict:
     return new_state
 
 
+def _as_aware_utc(dt: datetime) -> datetime:
+    return dt.replace(tzinfo=timezone.utc) if dt.tzinfo is None else dt
+
+
 def deadline_exceeded(started_at: str | None, max_hours: float | None, now: str | None = None) -> bool:
     if not started_at or not max_hours:
         return False
-    start = datetime.fromisoformat(started_at)
-    current = datetime.fromisoformat(now) if now else datetime.now(timezone.utc)
+    start = _as_aware_utc(datetime.fromisoformat(started_at))
+    current = _as_aware_utc(datetime.fromisoformat(now)) if now else datetime.now(timezone.utc)
     elapsed_hours = (current - start).total_seconds() / 3600
     return elapsed_hours >= max_hours
 
