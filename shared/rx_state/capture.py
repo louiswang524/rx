@@ -5,11 +5,11 @@ from rx_state.schema import Experiment
 
 
 def capture_run(rx_dir, exp_id, seeds, baseline, config, *, commit, gpu,
-                 goal, changes, result, conclusion, next_steps) -> str:
+                 goal, changes, result, conclusion, next_steps, repeat_count=0) -> str:
     exp_dir = os.path.join(rx_dir, "experiments", exp_id)
     os.makedirs(exp_dir, exist_ok=True)
     front = {"id": exp_id, "seeds": list(seeds), "baseline": baseline,
-             "commit": commit, "gpu": gpu}
+             "commit": commit, "gpu": gpu, "repeat_count": repeat_count}
     path = os.path.join(exp_dir, "run.md")
     with open(path, "w", encoding="utf-8") as f:
         f.write("---\n")
@@ -32,4 +32,5 @@ def load_experiment(rx_dir, exp_id) -> Experiment:
         _, front_block, _ = f.read().split("---", 2)
     front = yaml.safe_load(front_block)
     return Experiment(id=front["id"], seeds=front.get("seeds") or [],
-                      baseline=front.get("baseline"), commit=front.get("commit"))
+                      baseline=front.get("baseline"), commit=front.get("commit"),
+                      repeat_count=front.get("repeat_count") or 0)

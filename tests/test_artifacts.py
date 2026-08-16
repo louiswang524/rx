@@ -24,6 +24,21 @@ def test_evidence_roundtrip(tmp_path):
     assert back == e
 
 
+def test_evidence_roundtrip_with_sub_outcomes(tmp_path):
+    e = Evidence(id="E2", outcome="inconclusive", experiment_id="EXP1", note="mixed by size",
+                 sub_outcomes={"size=1024": "positive", "size=4096": "negative"})
+    back = read_evidence(write_evidence(str(tmp_path), e))
+    assert back == e
+
+
+def test_legacy_evidence_without_sub_outcomes_defaults_empty(tmp_path):
+    path = str(tmp_path / "legacy.md")
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("---\nid: E1\noutcome: positive\nexperiment_id: EXP1\n---\n\nnote text\n")
+    back = read_evidence(path)
+    assert back.sub_outcomes == {}
+
+
 def test_list_artifacts_sorted(tmp_path):
     write_question(str(tmp_path), Question(id="Q2", text="b"))
     write_question(str(tmp_path), Question(id="Q1", text="a"))

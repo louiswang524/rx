@@ -17,7 +17,9 @@ def evaluate_gate(
     exps = _experiments_for(evs, experiments)
     reasons: list[str] = []
 
-    has_positive = any(e.outcome == "positive" for e in evs)
+    has_positive = any(
+        e.outcome == "positive" or "positive" in e.sub_outcomes.values() for e in evs
+    )
     if not has_positive:
         reasons.append("no linked evidence with positive outcome")
         return "speculative", reasons
@@ -27,11 +29,13 @@ def evaluate_gate(
         return "speculative", reasons
 
     all_seeds = {s for x in exps for s in x.seeds}
+    max_repeats = max((x.repeat_count for x in exps), default=0)
+    reliability_n = max(len(all_seeds), max_repeats)
     has_baseline = any(x.baseline for x in exps)
     has_commit = any(x.commit for x in exps)
 
-    if len(all_seeds) < 2:
-        reasons.append("strong requires >=2 distinct seeds")
+    if reliability_n < 2:
+        reasons.append("strong requires >=2 distinct seeds or a repeat_count >= 2")
     if not has_baseline:
         reasons.append("strong requires a baseline comparison")
     if not has_commit:

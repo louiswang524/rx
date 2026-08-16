@@ -30,6 +30,26 @@ def test_capture_records_gpu_and_config(tmp_path):
     assert "lr" in text
 
 
+def test_capture_and_load_repeat_count(tmp_path):
+    capture_run(
+        str(tmp_path), "EXP4", seeds=[0], baseline="torch.matmul",
+        config={"reps": 20}, commit="cafe123", gpu="RTX 4060 Laptop",
+        goal="benchmark", changes="autotune sweep", result="see table",
+        conclusion="mixed", next_steps="widen sweep",
+        repeat_count=20,
+    )
+    exp = load_experiment(str(tmp_path), "EXP4")
+    assert exp.repeat_count == 20
+
+
+def test_capture_defaults_repeat_count_to_zero(tmp_path):
+    capture_run(str(tmp_path), "EXP5", seeds=[0], baseline=None,
+                config={}, commit="c", gpu="g",
+                goal="g", changes="c", result="r", conclusion="cc", next_steps="n")
+    exp = load_experiment(str(tmp_path), "EXP5")
+    assert exp.repeat_count == 0
+
+
 def test_capture_records_narrative_log(tmp_path):
     capture_run(str(tmp_path), "EXP3", seeds=[0], baseline="SASRec",
                 config={"lr": 0.01}, commit="abc0000", gpu="CPU-only",

@@ -25,6 +25,25 @@ def test_dataclasses_construct():
     assert c.evidence_ids == ["E1"]
 
 
+def test_experiment_repeat_count_defaults_zero():
+    exp = Experiment(id="EXP1", seeds=[0])
+    assert exp.repeat_count == 0
+    assert Experiment(id="EXP2", seeds=[], repeat_count=20).repeat_count == 20
+
+
+def test_evidence_sub_outcomes_default_empty_and_roundtrip():
+    ev = Evidence(id="E1", outcome="inconclusive")
+    assert ev.sub_outcomes == {}
+    mixed = Evidence(id="E2", outcome="inconclusive",
+                      sub_outcomes={"size=1024": "positive", "size=4096": "negative"})
+    assert mixed.sub_outcomes["size=1024"] == "positive"
+
+
+def test_evidence_sub_outcomes_validates_each_value():
+    with pytest.raises(ValueError):
+        Evidence(id="E1", outcome="positive", sub_outcomes={"a": "meh"})
+
+
 def test_validators_reject_bad_values():
     with pytest.raises(ValueError):
         validate_strength("kinda-strong")

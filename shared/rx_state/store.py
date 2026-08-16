@@ -116,14 +116,16 @@ def read_question(path: str) -> Question:
 
 
 def write_evidence(rx_dir: str, e: Evidence) -> str:
-    front = {"id": e.id, "outcome": e.outcome, "experiment_id": e.experiment_id}
+    front = {"id": e.id, "outcome": e.outcome, "experiment_id": e.experiment_id,
+             "sub_outcomes": e.sub_outcomes}
     return _write_frontmatter(rx_dir, "evidence", e.id, front, e.note)
 
 
 def read_evidence(path: str) -> Evidence:
     front, body = _read_frontmatter(path)
     return Evidence(id=front["id"], outcome=front["outcome"],
-                    experiment_id=front.get("experiment_id"), note=body)
+                    experiment_id=front.get("experiment_id"), note=body,
+                    sub_outcomes=front.get("sub_outcomes") or {})
 
 
 def list_artifacts(rx_dir: str, kind: str) -> list[str]:

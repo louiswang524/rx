@@ -38,6 +38,29 @@ def test_strong_requires_two_seeds_baseline_and_commit():
     assert can_promote(claim, ev, strong) is True
 
 
+def test_strong_via_repeat_count_without_seed_variety():
+    claim = Claim(id="C1", text="X helps", strength="strong", evidence_ids=["E1"])
+    ev = [Evidence(id="E1", outcome="positive", experiment_id="EXP1")]
+    weak = [Experiment(id="EXP1", seeds=[0], baseline="cuBLAS", commit="abc", repeat_count=1)]
+    met, reasons = evaluate_gate(claim, ev, weak)
+    assert met == "supported"
+    assert any("repeat_count" in r for r in reasons)
+
+    strong = [Experiment(id="EXP1", seeds=[0], baseline="cuBLAS", commit="abc", repeat_count=20)]
+    met2, _ = evaluate_gate(claim, ev, strong)
+    assert met2 == "strong"
+
+
+def test_sub_outcomes_positive_counts_toward_gate():
+    claim = Claim(id="C1", text="X helps", strength="supported", evidence_ids=["E1"])
+    ev = [Evidence(id="E1", outcome="inconclusive", experiment_id="EXP1",
+                    sub_outcomes={"size=1024": "positive", "size=4096": "negative"})]
+    exps = [Experiment(id="EXP1", seeds=[0], baseline="cuBLAS", commit="abc")]
+    met, _ = evaluate_gate(claim, ev, exps)
+    assert met == "supported"
+    assert can_promote(claim, ev, exps) is True
+
+
 def test_positive_evidence_without_experiment_is_not_supported():
     claim = Claim(id="C1", text="X helps", strength="supported", evidence_ids=["E1"])
     ev = [Evidence(id="E1", outcome="positive", experiment_id=None)]  # no linked experiment
